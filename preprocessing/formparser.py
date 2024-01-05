@@ -52,6 +52,7 @@ class FormParser:
         self.agro_machine_demand = {}
         self.summary = {}
 
+        self.TIME_PROBLEM = False
         self.months_prefix = constants.MONTHS_PREFIX
 
         self.output_dict = {}
@@ -69,6 +70,7 @@ class FormParser:
         Initializes the FormParser object with the given form data.
         """
         self.form = form
+        self.TIME_PROBLEM = False
         self.check_form_type()
         self.read_subtype_info()
         self.assign_prefix_suffix()
@@ -107,8 +109,12 @@ class FormParser:
         """
         if self.formtype == "household":
             # Get the monthly revenue
-            rev_t = self._read_form("H_3/time_rev_H", default="daily")
-            rev_q = float(self._read_form("H_3/revenues_H", default=0))
+            rev_t = self._read_form(
+                "H_3/time_rev_H", default="daily", formtype=self.form["_id"]
+            )
+            rev_q = float(
+                self._read_form("H_3/revenues_H", default=0, formtype=self.form["_id"])
+            )
             # Convert the revenue to a monthly value
             if "daily" in rev_t:
                 self.subtype_info = rev_q * 30
@@ -238,7 +244,9 @@ class FormParser:
                     name = key
                 # Get the rainy season for irrigation and livestock
                 rainy_season = self._read_form(
-                    f"{prefix['irrigation']}/dry_season{self.suffix}", default=""
+                    f"{prefix['irrigation']}/dry_season{self.suffix}",
+                    default="",
+                    formtype=self.form["_id"],
                 )
                 # Check if the service water is used
                 if self.form[f"{prefix[key]}/{key}{self.suffix}"] == "yes":
@@ -287,7 +295,8 @@ class FormParser:
         # Create the drinking water demand dictionary
         self.drinking_water_demand = {"daily_demand": consume}
         # Add the time window information to the dictionary
-        win, _ = utils.convert_usage_windows(drink_usage_time)
+        win, time_windows = utils.convert_usage_windows(drink_usage_time)
+
         for key, item in win.items():
             self.drinking_water_demand[f"water_{key}"] = item
         return self.drinking_water_demand
@@ -334,8 +343,13 @@ class FormParser:
                 usage_wd_dict = utils.extract_time_windows(string)
 
                 # Convert the time windows to a dictionary
-                usage_wd, _ = utils.convert_usage_windows(usage_wd_dict)
+                usage_wd, time_windows = utils.convert_usage_windows(usage_wd_dict)
 
+                ## Check if demand time is less than windows time
+                if utils.check_time(time_windows, hour):
+                    self.TIME_PROBLEM = True
+
+                # Add the time window information to the dictionary
                 # Create the dictionary for this appliance
                 app_dict[app_name] = {
                     "num_app": number,  # quantity of appliance
@@ -439,7 +453,11 @@ class FormParser:
                 }
 
                 # Extract the time windows and convert them to a dictionary
-                win, _ = utils.convert_usage_windows(usage_AP_dict)
+                win, time_windows = utils.convert_usage_windows(usage_AP_dict)
+
+                ## Check if demand time is less than windows time
+                if utils.check_time(time_windows, float(hour_AP)):
+                    self.TIME_PROBLEM = True
 
                 # Add the time windows to the dictionary for this machine
                 for key, item in win.items():
@@ -458,15 +476,25 @@ class FormParser:
         # Household numerosity
         subtypes = constants.FORM_SUBTYPES["household"]
         household_numerosity[subtypes[0]] = int(
-            self._read_form(f"{self.prefix['village_composition']}/HS_lower", default=0)
+            self._read_form(
+                f"{self.prefix['village_composition']}/HS_lower",
+                default=0,
+                formtype=self.formtype,
+            )
         )
         household_numerosity[subtypes[1]] = int(
             self._read_form(
-                f"{self.prefix['village_composition']}/HS_middle", default=0
+                f"{self.prefix['village_composition']}/HS_middle",
+                default=0,
+                formtype=self.form["_id"],
             )
         )
         household_numerosity[subtypes[2]] = int(
-            self._read_form(f"{self.prefix['village_composition']}/HS_upper", default=0)
+            self._read_form(
+                f"{self.prefix['village_composition']}/HS_upper",
+                default=0,
+                formtype=self.form["_id"],
+            )
         )
         household_numerosity["total_hh"] = int(
             self._read_form(f"{self.prefix['village_composition']}/HS_HH", default=0)
@@ -536,7 +564,7 @@ class FormParser:
 
     # reading functions
     @utils.warn_and_skip
-    def _read_form(self, key, default=None):
+    def _read_form(self, key, default=None, formtype=None):
         return self.form[key]
 
     def read_working_days(self, prefix: str):
@@ -671,6 +699,10 @@ class FormParser:
 
         ## Setting windows
         _, out_windows = utils.convert_usage_windows(usage_time)
+
+        if utils.check_time(out_windows, demand_time / 60):
+            self.TIME_PROBLEM = True
+
         while len(out_windows) < 3:
             out_windows.append(None)
 
@@ -681,6 +713,8 @@ class FormParser:
                 monthly_consumes[i + 1] = consumes["rainy"]
             else:
                 monthly_consumes[i + 1] = consumes["dry"]
+
+        ## Check if demand time is less than windows time
 
         return {
             "daily_demand": monthly_consumes,
@@ -807,4 +841,7 @@ class FormParser:
                         # "cooking_time": float(meal_time_window[0][1])-float(meal_time_window[0][0]) # Simone defined cooking time like this, but we have the question for this
                         "cooking_time": cooking_time,  # <-- this has to be < window_time
                     }
+
+                    if utils.check_time(meal_time_window, cooking_time):
+                        self.TIME_PROBLEM = True
         return meal_dict

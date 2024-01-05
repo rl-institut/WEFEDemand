@@ -129,13 +129,20 @@ class SurveyParser:
                         print("Processing form {}.".format(id))
                     try:
                         self.formparser.init_parser(self.forms[id])
-                        output[id] = copy(
+                        temp = copy(
                             self.formparser.create_dictionary(
                                 numerosity=self.numerosity[id]
                             )
                         )
                         if self.verbose:
                             print(f"Processed form {id}.")
+                        print(self.formparser.TIME_PROBLEM)
+                        if not self.formparser.TIME_PROBLEM:
+                            output[id] = temp
+                        elif self.verbose:
+                            print(
+                                f"Processed form {id}, but found a time problem, output not added for the simulation."
+                            )
                     except Exception as e:
                         print(
                             f"WARNING: Could not process form {id}"
@@ -151,13 +158,19 @@ class SurveyParser:
                         print("Processing form {}.".format(id))
                     try:
                         self.formparser.init_parser(self.forms[id])
-                        output[id] = copy(
+                        temp = copy(
                             self.formparser.create_dictionary(
                                 numerosity=self.numerosity[id]
                             )
                         )
                         if self.verbose:
                             print(f"Processed form {id}.")
+                        if not self.formparser.TIME_PROBLEM:
+                            output[id] = temp
+                        elif self.verbose:
+                            print(
+                                f"Processed form {id}, but found a time problem, output not added for the simulation."
+                            )
                     except Exception as e:
                         print(
                             f"WARNING: Could not process form {id}"
@@ -175,11 +188,19 @@ class SurveyParser:
                         continue
                     try:
                         self.formparser.init_parser(form)
-                        output[form["_id"]] = copy(
+                        temp = copy(
                             self.formparser.create_dictionary(
                                 numerosity=self.numerosity[form["_id"]]
                             )
                         )
+                        if self.verbose:
+                            print(f"Processed form {form['_id']}.")
+                        if not self.formparser.TIME_PROBLEM:
+                            output[form["_id"]] = temp
+                        elif self.verbose:
+                            print(
+                                f"Processed form {form['_id']}, but found a time problem, output not added for the simulation."
+                            )
                     except Exception as e:
                         print(
                             f"WARNING: Could not process form {form['_id']}"

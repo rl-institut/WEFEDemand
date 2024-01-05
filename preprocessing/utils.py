@@ -193,6 +193,17 @@ def convert_usage_windows(input_dict):
     return windows, usage_windows
 
 
+def check_time(windows, time):
+    tot_time_window = 0
+    for w in windows:
+        tot_time_window += w[-1] - w[0]
+
+    if time > tot_time_window:
+        return True
+    else:
+        return False
+
+
 # %% general function
 def load_kobo_data(form_id, api_token):
     """
@@ -228,13 +239,12 @@ def load_kobo_data(form_id, api_token):
 
 def warn_and_skip(func):
     @functools.wraps(func)
-    def wrapper(*args, default=None, **kwargs):
+    def wrapper(*args, default=None, formtype=None, **kwargs):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            warnings.warn(
-                f"Error processing {func.__name__}: {str(e)}, returning set default {default}",
-                category=UserWarning,
+            print(
+                f"WARNING: couldn't found {str(e)} information in form {formtype}, returning set default {default}"
             )
             return default
 
