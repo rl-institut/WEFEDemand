@@ -60,6 +60,26 @@ parser.add_argument(
     help="Activate verbose mode",
 )
 
+parser.add_argument(
+    "-po",
+    "--printoutput",
+    action="store_true",
+    help="Print the full output",
+)
+
+parser.add_argument(
+    "-pid", "--printids", action="store_true", help="Print ids preprocessed"
+)
+
+parser.add_argument(
+    "-pi",
+    "--printsingleform",
+    type=int,
+    nargs="+",
+    default=None,
+    help="Print the output of one or multiple forms given the form ids",
+)
+
 args = parser.parse_args()
 
 
@@ -174,4 +194,16 @@ if __name__ == "__main__":
     # run_simulation_on_survey()
     SURVEY_KEY, KOBO_TOKEN = get_key_and_token()
     preprocessed_survey = preprocess_survey(SURVEY_KEY, KOBO_TOKEN)
-    run_simulation_on_survey(preprocessed_survey)
+
+    if args.printoutput:
+        print(preprocessed_survey)
+    if args.printids:
+        print("FORM IDs: \n", list(preprocessed_survey.keys()))
+    if args.printsingleform:
+        for form_id in args.printsingleform:
+            print(f"output for form {form_id}:\n", preprocessed_survey[form_id])
+
+    if len(list(preprocessed_survey.keys())):
+        run_simulation_on_survey(preprocessed_survey)
+    else:
+        print("None of the forms could have been preprocessed")
