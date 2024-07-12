@@ -5,9 +5,11 @@ TBD
 
 ## Code linting
 
-1. Create a virtual environment and install the dev dependencies with
+1. Create a virtual environment and install the dev dependencies with, for example
 
         pip install -r requirements/dev.txt
+
+You can also create a virtual environment with conda and the `environment.yml` file
 
 2. Install the pre-commit hooks with
 
