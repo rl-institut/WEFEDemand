@@ -1,0 +1,18 @@
+geopandas~=0.14.2
+numpy~=1.26.4
+pandas~=2.2.1
+xarray~=2023.6.0
+shapely~=2.0.1
+requests~=2.31.0
+matplotlib~=3.8.0
+folium~=0.14.0
+fiona~=1.9.5
+plotly~=5.20.0
+tqdm~=4.66.2
+dash~=2.16.1
+koboextractor~=0.2.1
+setuptools~=68.2.2
+plotly-resampler==0.9.2
+chardet
+rampdemand @ git+https://github.com/RAMP-project/RAMP@development
+datatable_editor @ git+https://github.com/JW-Kraft/datatable_editor@main
