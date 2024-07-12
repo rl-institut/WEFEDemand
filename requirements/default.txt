@@ -3,7 +3,7 @@ numpy~=1.26.4
 pandas~=2.2.1
 xarray~=2023.6.0
 shapely~=2.0.1
-requests~=2.31.0
+requests
 matplotlib~=3.8.0
 folium~=0.14.0
 fiona~=1.9.5
