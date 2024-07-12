@@ -8,4 +8,3 @@ first_survey = results[0][0]
 
 with open("first_survey.json", "w") as file:
     json.dump(first_survey, file)
-

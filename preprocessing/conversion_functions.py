@@ -19,7 +19,7 @@ def convert_usage_windows(input_dict):
     start_time = None
 
     for window, active in input_dict.items():
-        hour_range = window.split('-')
+        hour_range = window.split("-")
         if active:
             if start_time is None:
                 start_time = int(hour_range[0])
@@ -34,15 +34,16 @@ def convert_usage_windows(input_dict):
 
     return usage_windows
 
+
 def rename_keys(dictionary):
     new_dict = {}
     for i, key in enumerate(dictionary):
         new_dict[i] = dictionary[key]
     return new_dict
 
-def set_values (dictionary, variable):
+
+def set_values(dictionary, variable):
     new_dict = {}
     for key in dictionary:
         new_dict[key] = variable
     return new_dict
-
