@@ -1,3 +1,5 @@
+import pandas as pd
+
 from ramp_model.ramp_control import RampControl
 
 from helpers import plotting
@@ -32,6 +34,8 @@ figures = []
 for demand, df in dat_output.groupby(level=0, axis=1):
     fig = make_subplots(rows=1, cols=1, shared_xaxes=True)
     fig = plotting.plotly_high_res_df(fig, df=df, subplot_row=1)
+    csv_file_path = f"demo/demand_{demand}.csv"
+    df.to_csv(csv_file_path, index=True, float_format="%.18f", decimal=",")
     i = i + 1
     print(demand)
     figures.append(
@@ -50,7 +54,15 @@ fig.update_layout(autosize=True)
 # %% Plot aggregated demands
 
 agg_demand = dat_output.groupby(level=0, axis=1).sum()
-agg_demand.head()
+print(agg_demand.head(30))
+for col in agg_demand.columns:
+    print(f"{col} max: ", agg_demand[col].max())
+    print(f"{col} min: ", agg_demand[col].min())
+
+print(agg_demand.info())
+csv_file_path = "demo/aggregated_demands.csv"
+# Write the DataFrame to the CSV file
+agg_demand.to_csv(csv_file_path, index=True, float_format="%.18f", decimal=",")
 
 fig = make_subplots(rows=1, cols=1, shared_xaxes=True)
 fig = plotting.plotly_high_res_df(fig, df=agg_demand, subplot_row=1)

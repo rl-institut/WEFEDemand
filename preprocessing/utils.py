@@ -10,19 +10,24 @@ from preprocessing import defaults
 
 
 def convert_perkg(
-    how_much: float, unit: str, fuel: str, kg_per_bag: Optional[float] = None
+    how_much: float,
+    unit: str,
+    fuel: str,
+    kg_per_bag=None,
 ) -> float:
     """Convert given quantity to kg."""
-    if unit not in defaults.fuel_units_conversion:
-        raise ValueError(
-            f"Missing fuel unit. The one defined are: "
-            f"{list(defaults.fuel_units_conversion.keys())}"
-        )
+    fuel_units_conversion = defaults.fuel_units_conversion
+    density_dict = defaults.density_dict
+
+    if unit not in fuel_units_conversion:
+        valid_units = ", ".join(fuel_units_conversion.keys())
+        raise ValueError(f"Missing fuel unit. The one defined are: {valid_units}")
 
     if unit == "kilogram":
         return how_much
     elif unit == "liter":
-        return how_much * defaults.density_dict[f"{fuel}_density"]
+        fuel_density = density_dict[f"{fuel}_density"]
+        return how_much * fuel_density
     elif unit in ["bag", "cylinder"]:
         if kg_per_bag is None:
             raise ValueError("Missing bag conversion coefficient")

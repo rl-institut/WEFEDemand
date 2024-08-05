@@ -142,6 +142,15 @@ suffix = {
     "local_aut": "",
 }
 prefix = {
+    "local_aut": {
+        "village_composition": "LA_2",
+        "education_composition": "LA_3",
+        "health_composition": "LA_4",
+        "religion_composition": "LA_5",
+        "economy_composition": "LA_6",
+        "agroprocessing_composition": "LA_7",
+        "baseline": "LA_8",
+    },
     "household": {
         "working_days": None,
         "cooking": "H_18",
@@ -178,5 +187,4 @@ prefix = {
         "service_water": "B_7",
         "agro_machine": "B_14",
     },
-    "local_aut": {},
 }
