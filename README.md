@@ -1,5 +1,9 @@
 # WEFEDemand
-TBD
+
+
+### Socio-economic data collection and WEF demand assessment
+The WEFESiteAnalyst includes the collection of socio-economic data and WEF demand assessment. Therefore, find a Survey xls-file. You can deploy the xls-file in kobotoolbox and fill it (in case you are analyzing a location you are working or living) or send it to people living or working at the location to be analyzed. The results are made available as table. For deployment of the xls-file in kobotoolbox, please see their [documentation](https://support.kobotoolbox.org/). 
+The WEF demand assessment tool (WEF DAT) is implemented by adding the water and food dimension to the exisitng energy demand asssessment tool [RAMP](https://github.com/RAMP-project/RAMP). Inputs to the WEF DAT are the survey results. Outputs of the WEF DAT are hourly demand time series related to the water, energy, and food dimensions.
 ## Get started
 
 
