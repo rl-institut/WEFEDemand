@@ -1,4 +1,4 @@
-#%%
+# %%
 from preprocessing.kobo_api_access import load_kobo_data
 from input import defaults
 from copy import copy
@@ -6,8 +6,8 @@ from copy import copy
 # Load survey data from Kobo and get only dict (position 0)
 survey_data = load_kobo_data("aCs4ygeFHN5jkb4endReWK")[0]
 
-#%%
-string = survey_data[0]['B_11/in_bulb_usage_wd']
+# %%
+string = survey_data[0]["B_11/in_bulb_usage_wd"]
 
 usage_wd_dict = copy(defaults.usage_wd_defaults)
 

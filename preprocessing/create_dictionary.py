@@ -15,7 +15,7 @@ for month in month_dict:
         month_dict[month] = True
     else:
         month_dict[month] = False
-months_present = convert(month_dict)                                                # Months of stay in the village
+months_present = convert(month_dict)  # Months of stay in the village
 
 # Get the parameters - Working days (business)
 if first_survey["G_0/respondent_type"] == "business":
@@ -28,7 +28,7 @@ if first_survey["G_0/respondent_type"] == "business":
         else:
             work_days_dict[day] = False
 
-    working_days = convert(work_days_dict)                                         # Working days (business)
+    working_days = convert(work_days_dict)  # Working days (business)
 
 # Get the parameters - Working days (agro-processing)
 if first_survey["G_0/respondent_type"] == "agroprocessing":
@@ -41,10 +41,10 @@ if first_survey["G_0/respondent_type"] == "agroprocessing":
         else:
             working_AP[day] = False
 
-    working_days_AP=working_AP                                     # Working days (agroprocessing)
+    working_days_AP = working_AP  # Working days (agroprocessing)
 
 # Get the parameters - Working days (household)
-hh_working_day = [0,1,2,3,4,5,6]
+hh_working_day = [0, 1, 2, 3, 4, 5, 6]
 
 # Get the parameters - Working days (service)
 if first_survey["G_0/respondent_type"] == "service":
@@ -67,8 +67,8 @@ if first_survey["G_0/respondent_type"] == "business":
     rev_month = float(first_survey["B_4b/bus_rev_lastmonth"])
 
     rev_B["business monthly revenues"] = {
-        "weekly revenues * 4" : rev_week * 4,
-        "monthly revenues" : rev_month
+        "weekly revenues * 4": rev_week * 4,
+        "monthly revenues": rev_month,
     }
 
 # Get the parameters - Monthly revenues (Household)
@@ -79,15 +79,17 @@ total_saving_local = 0
 
 if first_survey["G_0/respondent_type"] == "household":
     for key, data in first_survey.items():
-        if "H_3" in key and "_currency_H" in key :
-            saving_name = key.replace("H_3","", 1).replace("_currency_H","",1)
+        if "H_3" in key and "_currency_H" in key:
+            saving_name = key.replace("H_3", "", 1).replace("_currency_H", "", 1)
             try:
                 saving_usd = float(first_survey["H_3" + saving_name + "_amount_USD_H"])
             except KeyError:
                 saving_usd = 0.0
 
             try:
-                saving_local = float(first_survey["H_3" + saving_name + "_amount_local_H"])
+                saving_local = float(
+                    first_survey["H_3" + saving_name + "_amount_local_H"]
+                )
             except KeyError:
                 saving_local = 0.0
 
@@ -104,8 +106,8 @@ if first_survey["G_0/respondent_type"] == "agroprocessing":
     rev_month = float(first_survey["B_4b/bus_rev_lastmonth_AP"])
 
     rev_AP["agroprocessing monthly revenues"] = {
-        "weekly revenues * 4" : rev_week,
-        "monthly revenues" : rev_month
+        "weekly revenues * 4": rev_week,
+        "monthly revenues": rev_month,
     }
 
 # Get the parameters - Electrical appliances (Business)
@@ -113,13 +115,15 @@ app_dict_B = {}
 
 if first_survey["G_0/respondent_type"] == "business":
     for key, data in first_survey.items():
-        if "B_11/" in key and "_power" in key :
-            app_name = key.replace("B_11/","", 1).replace("_power","",1)        # appliance name
-            number = first_survey["B_11/"+app_name+"_number"]
-            power = first_survey["B_11/"+app_name+"_power"]
-            value = first_survey ["B_11/"+app_name+"_value"]
-            hour = first_survey["B_11/"+app_name+"_hour_wd"]
-            string = first_survey["B_11/"+app_name+"_usage_wd"]
+        if "B_11/" in key and "_power" in key:
+            app_name = key.replace("B_11/", "", 1).replace(
+                "_power", "", 1
+            )  # appliance name
+            number = first_survey["B_11/" + app_name + "_number"]
+            power = first_survey["B_11/" + app_name + "_power"]
+            value = first_survey["B_11/" + app_name + "_value"]
+            hour = first_survey["B_11/" + app_name + "_hour_wd"]
+            string = first_survey["B_11/" + app_name + "_usage_wd"]
 
             usage_wd_dict = copy(defaults.usage_wd_defaults)
 
@@ -128,13 +132,15 @@ if first_survey["G_0/respondent_type"] == "business":
                     usage_wd_dict[window] = True
                 else:
                     usage_wd_dict[window] = False
-            time_window = first_survey["B_11/"+app_name+"_usage_wd"].split()
+            time_window = first_survey["B_11/" + app_name + "_usage_wd"].split()
             app_dict_B[app_name] = {
-                "number" : float(number),                           # quantity of appliance
-                "power" : float(power),                             # appliance power in W
-                "value" : float(value),                             # appliance value
-                "usage_time": float(hour)*60,                       # appliance operating usage time in min
-                "time_window" : convert_usage_windows(usage_wd_dict)                       # appliance usage windows
+                "number": float(number),  # quantity of appliance
+                "power": float(power),  # appliance power in W
+                "value": float(value),  # appliance value
+                "usage_time": float(hour) * 60,  # appliance operating usage time in min
+                "time_window": convert_usage_windows(
+                    usage_wd_dict
+                ),  # appliance usage windows
             }
 
 
@@ -143,13 +149,15 @@ app_dict_H = {}
 
 if first_survey["G_0/respondent_type"] == "household":
     for key, data in first_survey.items():
-        if "H_16/" in key and "_power" in key :
-            app_name = key.replace("H_16/","", 1).replace("_power_H","",1)    # appliance name
-            number = first_survey["H_16/"+app_name+"_number_H"]
-            power = first_survey["H_16/"+app_name+"_power_H"]
-            value = first_survey ["H_16/"+app_name+"_value_H"]
-            hour = first_survey["H_16/"+app_name+"_hour_wd_H"]
-            string = first_survey["H_16/"+app_name+"_usage_wd_H"]
+        if "H_16/" in key and "_power" in key:
+            app_name = key.replace("H_16/", "", 1).replace(
+                "_power_H", "", 1
+            )  # appliance name
+            number = first_survey["H_16/" + app_name + "_number_H"]
+            power = first_survey["H_16/" + app_name + "_power_H"]
+            value = first_survey["H_16/" + app_name + "_value_H"]
+            hour = first_survey["H_16/" + app_name + "_hour_wd_H"]
+            string = first_survey["H_16/" + app_name + "_usage_wd_H"]
 
             usage_wd_dict = copy(defaults.usage_wd_defaults)
 
@@ -162,11 +170,11 @@ if first_survey["G_0/respondent_type"] == "household":
             usage_wd = convert_usage_windows(usage_wd_dict)
 
             app_dict_H[app_name] = {
-                "number" : float(number),                                   # quantity of appliance
-                "power" : float(power),                                     # appliance power in W
-                "value" : float(value),                                     # appliance value
-                "usage_time": float(hour)*60,                               # appliance operating usage time in min
-                "time_window_1" : usage_wd                           # appliance usage windows
+                "number": float(number),  # quantity of appliance
+                "power": float(power),  # appliance power in W
+                "value": float(value),  # appliance value
+                "usage_time": float(hour) * 60,  # appliance operating usage time in min
+                "time_window_1": usage_wd,  # appliance usage windows
             }
 
 # Get the parameters - Electrical appliances (Service)
@@ -174,13 +182,15 @@ app_dict_S = {}
 
 if first_survey["G_0/respondent_type"] == "service":
     for key, data in first_survey.items():
-        if "S_3/" in key and "_power" in key :
-            app_name = key.replace("S_3/","", 1).replace("_power_S","",1)        # appliance name
-            number = first_survey["S_3/"+app_name+"_number_S"]
-            power = first_survey["S_3/"+app_name+"_power_S"]
-            value = first_survey ["S_3/"+app_name+"_value_S"]
-            hour = first_survey["S_3/"+app_name+"_hour_wd_S"]
-            string = first_survey["S_3/"+app_name+"_usage_wd_S"]
+        if "S_3/" in key and "_power" in key:
+            app_name = key.replace("S_3/", "", 1).replace(
+                "_power_S", "", 1
+            )  # appliance name
+            number = first_survey["S_3/" + app_name + "_number_S"]
+            power = first_survey["S_3/" + app_name + "_power_S"]
+            value = first_survey["S_3/" + app_name + "_value_S"]
+            hour = first_survey["S_3/" + app_name + "_hour_wd_S"]
+            string = first_survey["S_3/" + app_name + "_usage_wd_S"]
 
             usage_wd_dict = copy(defaults.usage_wd_defaults)
 
@@ -189,15 +199,16 @@ if first_survey["G_0/respondent_type"] == "service":
                     usage_wd_dict[window] = True
                 else:
                     usage_wd_dict[window] = False
-            time_window = first_survey["S_3/"+app_name+"_usage_wd_S"].split()
+            time_window = first_survey["S_3/" + app_name + "_usage_wd_S"].split()
             app_dict_S[app_name] = {
-                "number" : float(number),                           # quantity of appliance
-                "power" : float(power),                             # appliance power in W
-                "value" : float(value),                             # appliance value
-                "usage_time": float(hour)*60,                       # appliance operating usage time in min
-                "time_window" : convert_usage_windows(usage_wd_dict)                       # appliance usage windows
+                "number": float(number),  # quantity of appliance
+                "power": float(power),  # appliance power in W
+                "value": float(value),  # appliance value
+                "usage_time": float(hour) * 60,  # appliance operating usage time in min
+                "time_window": convert_usage_windows(
+                    usage_wd_dict
+                ),  # appliance usage windows
             }
-
 
 
 # Get the parameters - Cooking demand (Business)
@@ -205,48 +216,47 @@ cook_dict_B = {}
 
 if first_survey["G_0/respondent_type"] == "business":
     for key, data in first_survey.items():
-        if "B_13" in key and "_time" in key :
-            fuel_name = key.replace("B_13","", 1).replace("_time","",1)     # fuel name
-            time_cons = first_survey["B_13"+fuel_name+"_time"]
-            unit = first_survey["B_13"+fuel_name+"_unit"]
-            kg_bag = float(first_survey["B_13"+fuel_name+"_bag"])
-            quantity = float(first_survey["B_13"+fuel_name+"_amount"])
-            price = float(first_survey["B_13"+fuel_name+"_cost"])
+        if "B_13" in key and "_time" in key:
+            fuel_name = key.replace("B_13", "", 1).replace("_time", "", 1)  # fuel name
+            time_cons = first_survey["B_13" + fuel_name + "_time"]
+            unit = first_survey["B_13" + fuel_name + "_unit"]
+            kg_bag = float(first_survey["B_13" + fuel_name + "_bag"])
+            quantity = float(first_survey["B_13" + fuel_name + "_amount"])
+            price = float(first_survey["B_13" + fuel_name + "_cost"])
 
-            if time_cons == "daily" :
-                if unit == "kilogram" :
+            if time_cons == "daily":
+                if unit == "kilogram":
                     daily_cons = quantity
-                elif unit == "liter" :
+                elif unit == "liter":
                     fuel_density = density_dict[fuel + "_density"]
                     daily_cons = quantity * fuel_density
                 elif unit == "bag" or unit == "cylinder":
                     daily_cons = quantity * kg_bag
-            if time_cons == "weekly" :
-                if unit == "kilogram" :
-                    daily_cons = quantity/7
-                elif unit == "liter" :
+            if time_cons == "weekly":
+                if unit == "kilogram":
+                    daily_cons = quantity / 7
+                elif unit == "liter":
                     fuel_density = density_dict[fuel + "_density"]
-                    daily_cons = quantity * fuel_density/7
+                    daily_cons = quantity * fuel_density / 7
                 elif unit == "bag" or unit == "cylinder":
-                    daily_cons = quantity * kg_bag/7
-            if time_cons == "monthly" :
-                if unit == "kilogram" :
-                    daily_cons = quantity/30
-                elif unit == "liter" :
+                    daily_cons = quantity * kg_bag / 7
+            if time_cons == "monthly":
+                if unit == "kilogram":
+                    daily_cons = quantity / 30
+                elif unit == "liter":
                     fuel_density = density_dict[fuel + "_density"]
-                    daily_cons = quantity * fuel_density/30
+                    daily_cons = quantity * fuel_density / 30
                 elif unit == "bag" or unit == "cylinder":
-                    daily_cons = quantity * kg_bag/30
-
+                    daily_cons = quantity * kg_bag / 30
 
             cook_dict_B[fuel_name] = {
-            "time": time_cons,                                  # time window to express fuel consumption
-            "unit": unit,                                       # unit to express fuel consumption
-            "bag": kg_bag,                                      # kg per unit of fuel
-            "quantity": quantity,                               # quantity of unit consumption in the time window
-            "price": price,                                     # price per unit
-            "fuel_amount": daily_cons                           # daily fuel consumption [kg]
-        }
+                "time": time_cons,  # time window to express fuel consumption
+                "unit": unit,  # unit to express fuel consumption
+                "bag": kg_bag,  # kg per unit of fuel
+                "quantity": quantity,  # quantity of unit consumption in the time window
+                "price": price,  # price per unit
+                "fuel_amount": daily_cons,  # daily fuel consumption [kg]
+            }
 
 
 # Get the parameters - Meal (Business)
@@ -254,7 +264,7 @@ meal_dict_B = {}
 
 if first_survey["G_0/respondent_type"] == "business":
     for key, data in first_survey.items():
-        if "B_13" in key :
+        if "B_13" in key:
             week = first_survey["B_13_meal/meal_per_week"]
             fuel = first_survey["B_13_meal/fuels_meal"]
             cooking_device = first_survey["B_13_meal/cooking_meal"]
@@ -271,12 +281,13 @@ if first_survey["G_0/respondent_type"] == "business":
             bus_meal_time_window = convert_usage_windows(meal_usage_time)
 
             meal_dict_B["meal_business"] = {
-            "meal_week" : float(week),                              # number of meals per week
-            "meal_fuel" : fuel,                                     # fuel used for meals
-            "meal_stove" : cooking_device,                          # stove used for meals
-            "cooking_window_start": bus_meal_time_window[0][0],  # meals time window
-            "cooking_window_end": bus_meal_time_window[0][1],
-            "cooking_time": float(bus_meal_time_window[0][1]) - float(bus_meal_time_window[0][0])
+                "meal_week": float(week),  # number of meals per week
+                "meal_fuel": fuel,  # fuel used for meals
+                "meal_stove": cooking_device,  # stove used for meals
+                "cooking_window_start": bus_meal_time_window[0][0],  # meals time window
+                "cooking_window_end": bus_meal_time_window[0][1],
+                "cooking_time": float(bus_meal_time_window[0][1])
+                - float(bus_meal_time_window[0][0]),
             }
 
 
@@ -285,48 +296,46 @@ cook_dict_H = {}
 
 if first_survey["G_0/respondent_type"] == "household":
     for key, data in first_survey.items():
-        if "H_18" in key and "_unit" in key :
-            fuel_name = key.replace("H_18","", 1).replace("_unit_H","",1)
-            time_cons = first_survey["H_18"+fuel_name+"_time_H"]
-            unit = first_survey["H_18"+fuel_name+"_unit_H"]
-            quantity = float(first_survey["H_18"+fuel_name+"_amount_H"])
-            price = float(first_survey["H_18"+fuel_name+"_cost_H"])
+        if "H_18" in key and "_unit" in key:
+            fuel_name = key.replace("H_18", "", 1).replace("_unit_H", "", 1)
+            time_cons = first_survey["H_18" + fuel_name + "_time_H"]
+            unit = first_survey["H_18" + fuel_name + "_unit_H"]
+            quantity = float(first_survey["H_18" + fuel_name + "_amount_H"])
+            price = float(first_survey["H_18" + fuel_name + "_cost_H"])
             kg_bag = float(first_survey["H_18" + fuel_name + "_bag_H"])
 
-
-            if time_cons == "daily" :
-                if unit == "kilogram" :
+            if time_cons == "daily":
+                if unit == "kilogram":
                     daily_cons = quantity
-                elif unit == "liter" :
+                elif unit == "liter":
                     fuel_density = density_dict[fuel + "_density"]
                     daily_cons = quantity * fuel_density
                 elif unit == "bag" or unit == "cylinder":
                     daily_cons = quantity * kg_bag
-            if time_cons == "weekly" :
-                if unit == "kilogram" :
-                    daily_cons = quantity/7
-                elif unit == "liter" :
+            if time_cons == "weekly":
+                if unit == "kilogram":
+                    daily_cons = quantity / 7
+                elif unit == "liter":
                     fuel_density = density_dict[fuel + "_density"]
-                    daily_cons = quantity * fuel_density/7
+                    daily_cons = quantity * fuel_density / 7
                 elif unit == "bag" or unit == "cylinder":
-                    daily_cons = quantity * kg_bag/7
-            if time_cons == "monthly" :
-                if unit == "kilogram" :
-                    daily_cons = quantity/30
-                elif unit == "liter" :
+                    daily_cons = quantity * kg_bag / 7
+            if time_cons == "monthly":
+                if unit == "kilogram":
+                    daily_cons = quantity / 30
+                elif unit == "liter":
                     fuel_density = density_dict[fuel + "_density"]
-                    daily_cons = quantity * fuel_density/30
+                    daily_cons = quantity * fuel_density / 30
                 elif unit == "bag" or unit == "cylinder":
-                    daily_cons = quantity * kg_bag/30
-
+                    daily_cons = quantity * kg_bag / 30
 
             cook_dict_H[fuel_name] = {
-            "time": time_cons,                                  # time window to express fuel consumption
-            "unit": unit,                                       # unit to express fuel consumption
-            "quantity": quantity,                               # quantity of unit consumption in the time window
-            "price": price,                                     # price per unit
-            "fuel_amount": daily_cons                           # daily fuel consumption
-        }
+                "time": time_cons,  # time window to express fuel consumption
+                "unit": unit,  # unit to express fuel consumption
+                "quantity": quantity,  # quantity of unit consumption in the time window
+                "price": price,  # price per unit
+                "fuel_amount": daily_cons,  # daily fuel consumption
+            }
 
 
 # Get the parameters - Meal (Household)
@@ -334,7 +343,7 @@ meal_dict_H = {}
 
 if first_survey["G_0/respondent_type"] == "household":
     for key, data in first_survey.items():
-        if "H_18" in key :
+        if "H_18" in key:
             week = first_survey["H_18l/meal_per_week_H"]
             fuel = first_survey["H_18l/fuels_meal_H"]
             cooking_device = first_survey["H_18l/cooking_meal_H"]
@@ -350,12 +359,13 @@ if first_survey["G_0/respondent_type"] == "household":
             meal_time_window = convert_usage_windows(meal_usage_time)
 
             meal_dict_H["meal_household"] = {
-            "meal_week" : float(week),                              # number of meals per week
-            "meal_fuel" : fuel,                                     # fuel used for meals
-            "meal_stove" : cooking_device,                          # stove used for meals
-            "cooking_window_start" : meal_time_window[0][0],       # meals time window
-            "cooking_window_end": meal_time_window[0][1],
-            "cooking_time": float(meal_time_window[0][1])-float(meal_time_window[0][0])
+                "meal_week": float(week),  # number of meals per week
+                "meal_fuel": fuel,  # fuel used for meals
+                "meal_stove": cooking_device,  # stove used for meals
+                "cooking_window_start": meal_time_window[0][0],  # meals time window
+                "cooking_window_end": meal_time_window[0][1],
+                "cooking_time": float(meal_time_window[0][1])
+                - float(meal_time_window[0][0]),
             }
 
 # Get the parameters - Drinking Water (Business)
@@ -366,13 +376,13 @@ if first_survey["G_0/respondent_type"] == "business":
     unit = float(first_survey["B_7/drink_use"])
     string_drink_window = first_survey["B_7/drink_time"]
 
-    if unit_of_measurement == "drink_liter" :
+    if unit_of_measurement == "drink_liter":
         consume = unit
-    elif unit_of_measurement == "drink_large_buck" :
+    elif unit_of_measurement == "drink_large_buck":
         consume = unit * large_buck
-    elif unit_of_measurement == "drink_medium_buck" :
+    elif unit_of_measurement == "drink_medium_buck":
         consume = unit * medium_buck
-    elif unit_of_measurement == "drink_small_buck" :
+    elif unit_of_measurement == "drink_small_buck":
         consume = unit * small_buck
 
     drink_usage_time = copy(defaults.usage_wd_defaults)
@@ -385,8 +395,10 @@ if first_survey["G_0/respondent_type"] == "business":
     time_window = first_survey["B_7/drink_time"].split()
 
     drinking_water_dict_B["drinking_water_B"] = {
-        "daily_demand" : consume,                                   # daily drinking water demand
-        "water_window" : convert_usage_windows(drink_usage_time)                           # drinking water usage window
+        "daily_demand": consume,  # daily drinking water demand
+        "water_window": convert_usage_windows(
+            drink_usage_time
+        ),  # drinking water usage window
     }
 
 
@@ -398,13 +410,13 @@ if first_survey["G_0/respondent_type"] == "household":
     unit = float(first_survey["H_8/drink_use_H"])
     string_drink_window = first_survey["H_8/drink_time_H"]
 
-    if unit_of_measurement == "drink_liter" :
+    if unit_of_measurement == "drink_liter":
         consume = unit
-    elif unit_of_measurement == "drink_large_buck" :
+    elif unit_of_measurement == "drink_large_buck":
         consume = unit * large_buck
-    elif unit_of_measurement == "drink_medium_buck" :
+    elif unit_of_measurement == "drink_medium_buck":
         consume = unit * medium_buck
-    elif unit_of_measurement == "drink_small_buck" :
+    elif unit_of_measurement == "drink_small_buck":
         consume = unit * small_buck
 
     drink_usage_time = copy(defaults.usage_wd_defaults)
@@ -417,8 +429,10 @@ if first_survey["G_0/respondent_type"] == "household":
     time_window = first_survey["H_8/drink_time_H"].split()
 
     drinking_water_dict_H["drinking_water_H"] = {
-        "daily_demand" : consume,                               # daily drinking water demand
-        "water_window" : convert_usage_windows(drink_usage_time)                       # drinking water usage window
+        "daily_demand": consume,  # daily drinking water demand
+        "water_window": convert_usage_windows(
+            drink_usage_time
+        ),  # drinking water usage window
     }
 
 
@@ -443,7 +457,7 @@ if first_survey["G_0/respondent_type"] == "business":
         consume_serv = unit_serv * small_buck
 
     daily_demand = copy(defaults.months_defaults)
-    daily_water_demand = ser_value (daily_demand, consume_serv)
+    daily_water_demand = ser_value(daily_demand, consume_serv)
 
     service_usage_time = copy(defaults.usage_wd_defaults)
 
@@ -456,8 +470,8 @@ if first_survey["G_0/respondent_type"] == "business":
     service_water_dict_B["service_water_business"] = {
         "daily_demand": daily_water_demand,
         "water_window": convert_usage_windows(service_usage_time),
-        "pumping_head" : pumping_head,
-        "demand_duration" : demand_time
+        "pumping_head": pumping_head,
+        "demand_duration": demand_time,
     }
 
 
@@ -521,11 +535,15 @@ if first_survey["G_0/respondent_type"] == "household":
     irr_season_dict = rename_keys(season_dict)
 
     irrigation_water_dict_H["irrigation_water_household"] = {
-        "daily_demand": irr_season_dict,                                        # irrigation water demand of typical day for each month
-        "irr_window_dry": convert_usage_windows(dry_irr_usage_time),            # irrigation water time window (dry season)
-        "irr_window_rainy" : convert_usage_windows(rainy_irr_usage_time),        # irrigation water time window (rainy season)
+        "daily_demand": irr_season_dict,  # irrigation water demand of typical day for each month
+        "irr_window_dry": convert_usage_windows(
+            dry_irr_usage_time
+        ),  # irrigation water time window (dry season)
+        "irr_window_rainy": convert_usage_windows(
+            rainy_irr_usage_time
+        ),  # irrigation water time window (rainy season)
         "pumping_head": pumping_head_irr,
-        "demand_duration": demand_time_irr
+        "demand_duration": demand_time_irr,
     }
 
 animal_water_dict_H = {}
@@ -586,11 +604,15 @@ if first_survey["G_0/respondent_type"] == "household":
     anim_season_dict = rename_keys(season_dict_animal)
 
     animal_water_dict_H["animal_water_household"] = {
-        "daily_demand": anim_season_dict,                                                         # animal water demand of typical day for each month
-        "animal_window_dry": convert_usage_windows(dry_animal_usage_time),                        # animal water time window (dry season)
-        "animal_window_rainy" : convert_usage_windows(rainy_animal_usage_time),                    # animal water time window (rainy season)
+        "daily_demand": anim_season_dict,  # animal water demand of typical day for each month
+        "animal_window_dry": convert_usage_windows(
+            dry_animal_usage_time
+        ),  # animal water time window (dry season)
+        "animal_window_rainy": convert_usage_windows(
+            rainy_animal_usage_time
+        ),  # animal water time window (rainy season)
         "pumping_head": pumping_head_animal,
-        "demand_duration": demand_time_animal
+        "demand_duration": demand_time_animal,
     }
 
 
@@ -600,7 +622,9 @@ agroproc_dict = {}
 if first_survey["G_0/respondent_type"] == "agroprocessing":
     for key, data in first_survey.items():
         if "AP_5/" in key and "_motor_AP" in key:
-            mach_name = key.replace("AP_5/", "", 1).replace("_motor_AP", "", 1)  # machinery name
+            mach_name = key.replace("AP_5/", "", 1).replace(
+                "_motor_AP", "", 1
+            )  # machinery name
             fuel_AP = first_survey["AP_5/" + mach_name + "_motor_AP"]
             product = first_survey["AP_5/" + mach_name + "_prod_onerun_AP"]
             hourly_prod = first_survey["AP_5/" + mach_name + "_hour_prod_AP"]
@@ -615,18 +639,18 @@ if first_survey["G_0/respondent_type"] == "agroprocessing":
                     usage_AP_dict[window] = False
 
             months_AP = {
-                'January': float(first_survey["AP_5/" + mach_name + "_prod_jan_AP"]),
-                'February': float(first_survey["AP_5/" + mach_name + "_prod_feb_AP"]),
-                'March': float(first_survey["AP_5/" + mach_name + "_prod_mar_AP"]),
-                'April': float(first_survey["AP_5/" + mach_name + "_prod_apr_AP"]),
-                'May': float(first_survey["AP_5/" + mach_name + "_prod_may_AP"]),
-                'June': float(first_survey["AP_5/" + mach_name + "_prod_jun_AP"]),
-                'July': float(first_survey["AP_5/" + mach_name + "_prod_jul_AP"]),
-                'August': float(first_survey["AP_5/" + mach_name + "_prod_aug_AP"]),
-                'September': float(first_survey["AP_5/" + mach_name + "_prod_sep_AP"]),
-                'October': float(first_survey["AP_5/" + mach_name + "_prod_oct_AP"]),
-                'November': float(first_survey["AP_5/" + mach_name + "_prod_nov_AP"]),
-                'December': float(first_survey["AP_5/" + mach_name + "_prod_dec_AP"])
+                "January": float(first_survey["AP_5/" + mach_name + "_prod_jan_AP"]),
+                "February": float(first_survey["AP_5/" + mach_name + "_prod_feb_AP"]),
+                "March": float(first_survey["AP_5/" + mach_name + "_prod_mar_AP"]),
+                "April": float(first_survey["AP_5/" + mach_name + "_prod_apr_AP"]),
+                "May": float(first_survey["AP_5/" + mach_name + "_prod_may_AP"]),
+                "June": float(first_survey["AP_5/" + mach_name + "_prod_jun_AP"]),
+                "July": float(first_survey["AP_5/" + mach_name + "_prod_jul_AP"]),
+                "August": float(first_survey["AP_5/" + mach_name + "_prod_aug_AP"]),
+                "September": float(first_survey["AP_5/" + mach_name + "_prod_sep_AP"]),
+                "October": float(first_survey["AP_5/" + mach_name + "_prod_oct_AP"]),
+                "November": float(first_survey["AP_5/" + mach_name + "_prod_nov_AP"]),
+                "December": float(first_survey["AP_5/" + mach_name + "_prod_dec_AP"]),
             }
             if first_survey["AP_5/" + mach_name + "_prod_exp_AP"] == "daily":
                 exp = 1
@@ -638,13 +662,20 @@ if first_survey["G_0/respondent_type"] == "agroprocessing":
                 months_AP[k] = months_AP[k] / exp
 
             agroproc_dict[mach_name] = {
-                "fuel": fuel_AP,                                        # agroprocessing machine fuel
-                "crop_processed_per_run": float(product),               # crop processed [kg] per run
-                "throughput": float(hourly_prod),                       # [kg] of crop processed per [h] of machine operation
-                "crop_processed_per_fuel": float(efficiency),           # crop processed [kg] per unit of fuel
-                "usage_time": float(hour_AP) * 60,                      # machine operating usage time in min
-                "time_window": convert_usage_windows(usage_AP_dict),    # machine usage windows
-                "crop_processed_per_day": months_AP                     # crop processed on a typical working day for each months
+                "fuel": fuel_AP,  # agroprocessing machine fuel
+                "crop_processed_per_run": float(product),  # crop processed [kg] per run
+                "throughput": float(
+                    hourly_prod
+                ),  # [kg] of crop processed per [h] of machine operation
+                "crop_processed_per_fuel": float(
+                    efficiency
+                ),  # crop processed [kg] per unit of fuel
+                "usage_time": float(hour_AP)
+                * 60,  # machine operating usage time in min
+                "time_window": convert_usage_windows(
+                    usage_AP_dict
+                ),  # machine usage windows
+                "crop_processed_per_day": months_AP,  # crop processed on a typical working day for each months
             }
 
 if first_survey["G_0/respondent_type"] == "local_aut":
@@ -665,45 +696,76 @@ if first_survey["G_0/respondent_type"] == "local_aut":
     other = float(first_survey["LA_7/number_other"])
 
     household_numerosity = {
-        "low_income_hh" : number_hh * perc_low_income / 100,
+        "low_income_hh": number_hh * perc_low_income / 100,
         "medium_income_hh": number_hh * perc_medium_income / 100,
         "high_income_hh": number_hh * perc_high_income / 100,
     }
 
     service_numerosity = {
-        "school_numerosity" : primary_school + secondary_school,
-        "health_centre_numerosity" : hospital + health_centre,
-        "church_moscque_numerosity" : church + mosque
+        "school_numerosity": primary_school + secondary_school,
+        "health_centre_numerosity": hospital + health_centre,
+        "church_moscque_numerosity": church + mosque,
     }
 
     agroprocessing_numerosity = {
-        "mill_numerosity" : mill,
+        "mill_numerosity": mill,
         "husker_numerosity": husker,
-        "other_numerosity": other
+        "other_numerosity": other,
     }
 
 
 if first_survey["G_0/respondent_type"] == "business":
-    business_dict = {'months_present':months_present,'working_days':working_days,'revenues_business':rev_B,'elec_demand_B':app_dict_B,'cooking_demand_B':cook_dict_B,'meal_B':meal_dict_B,'driking_water_B':drinking_water_dict_B,'service_water_B':service_water_dict_B}
-    with open('business_dictionary.json', 'w') as json_file:
+    business_dict = {
+        "months_present": months_present,
+        "working_days": working_days,
+        "revenues_business": rev_B,
+        "elec_demand_B": app_dict_B,
+        "cooking_demand_B": cook_dict_B,
+        "meal_B": meal_dict_B,
+        "driking_water_B": drinking_water_dict_B,
+        "service_water_B": service_water_dict_B,
+    }
+    with open("business_dictionary.json", "w") as json_file:
         json.dump(business_dict, json_file)
 
 if first_survey["G_0/respondent_type"] == "household":
-    household_dict = {'months_present':months_present,'working_days':hh_working_day,'total_saving_household':total_saving,'elec_demand_H':app_dict_H,'cooking_demand_H':cook_dict_H,'meal_H':meal_dict_H,'drinking_water_H':drinking_water_dict_H,'irrigation_water':irrigation_water_dict_H,'animal_water':animal_water_dict_H}
-    with open('household_dictionary.json', 'w') as json_file:
+    household_dict = {
+        "months_present": months_present,
+        "working_days": hh_working_day,
+        "total_saving_household": total_saving,
+        "elec_demand_H": app_dict_H,
+        "cooking_demand_H": cook_dict_H,
+        "meal_H": meal_dict_H,
+        "drinking_water_H": drinking_water_dict_H,
+        "irrigation_water": irrigation_water_dict_H,
+        "animal_water": animal_water_dict_H,
+    }
+    with open("household_dictionary.json", "w") as json_file:
         json.dump(household_dict, json_file)
 
 if first_survey["G_0/respondent_type"] == "agroprocessing":
-    agroprocessing_dict = {'working_days_AP':working_days_AP,'revenues_AP':rev_AP,'agroprocessing_dict':agroproc_dict}
-    with open('agroprocessing_dictionary.json', 'w') as json_file:
+    agroprocessing_dict = {
+        "working_days_AP": working_days_AP,
+        "revenues_AP": rev_AP,
+        "agroprocessing_dict": agroproc_dict,
+    }
+    with open("agroprocessing_dictionary.json", "w") as json_file:
         json.dump(agroprocessing_dict, json_file)
 
 if first_survey["G_0/respondent_type"] == "service":
-    service_dict = {'months_present':months_present,'working_days':serv_working_days,'elec_demand_S':app_dict_S}
-    with open('service_dictionary.json', 'w') as json_file:
+    service_dict = {
+        "months_present": months_present,
+        "working_days": serv_working_days,
+        "elec_demand_S": app_dict_S,
+    }
+    with open("service_dictionary.json", "w") as json_file:
         json.dump(service_dict, json_file)
 
 if first_survey["G_0/respondent_type"] == "local_aut":
-    local_aut_dict = {'household':household_numerosity,'service':service_numerosity,'agroprocessing':agroprocessing_numerosity}
-    with open('local_aut_dictionary.json', 'w') as json_file:
+    local_aut_dict = {
+        "household": household_numerosity,
+        "service": service_numerosity,
+        "agroprocessing": agroprocessing_numerosity,
+    }
+    with open("local_aut_dictionary.json", "w") as json_file:
         json.dump(local_aut_dict, json_file)

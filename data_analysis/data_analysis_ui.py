@@ -3,7 +3,19 @@ Complete UI for data_analysis of DAT
 
 """
 
-from dash import Dash, ALL, dcc, html, Input, Output, State, dash_table, no_update, ctx, MATCH
+from dash import (
+    Dash,
+    ALL,
+    dcc,
+    html,
+    Input,
+    Output,
+    State,
+    dash_table,
+    no_update,
+    ctx,
+    MATCH,
+)
 import dash_bootstrap_components as dbc
 
 import pandas as pd
@@ -73,16 +85,18 @@ Input:
 """
 
 """
-5. Generate relational_dfs from nested dicts 
+5. Generate relational_dfs from nested dicts
 - develop and test with survey data
 """
 
 """
 6. Display multiple select content
-- checkbox visualisation for table cells that contain lists 
+- checkbox visualisation for table cells that contain lists
 """
 
-from data_analysis.data_analysis_test import display_tables_dict  # dict containing all tables to be displayed
+from data_analysis.data_analysis_test import (
+    display_tables_dict,
+)  # dict containing all tables to be displayed
 
 # Dynamically create dict of callback outputs for all tables
 # Necessary because Dash pattern matching callback with "ALL" (updating all tables on every callback) breaks active cell
@@ -90,25 +104,31 @@ callback_output_dict = {}
 # Loop through each table to display
 i = 0
 for table_id, table in display_tables_dict.items():
-    callback_output_dict[f'style_table_row_{table_id}'] = Output({'type': 'table_row_wrapper', 'table_id': table_id},
-                                                                 'style')
-    callback_output_dict[f'filter_query_table_{table_id}'] = Output({'type': 'table', 'table_id': table_id,
-                                                                    'table_number': i}, 'filter_query')
+    callback_output_dict[f"style_table_row_{table_id}"] = Output(
+        {"type": "table_row_wrapper", "table_id": table_id}, "style"
+    )
+    callback_output_dict[f"filter_query_table_{table_id}"] = Output(
+        {"type": "table", "table_id": table_id, "table_number": i}, "filter_query"
+    )
     i += 1
 
 # Prepare output dict with identical keys and all values set to no_update to be used in callback
 function_output_dict = {key: no_update for key in callback_output_dict.keys()}
+
 
 @app.callback(
     # List of tables in view
     output=callback_output_dict,
     inputs=[
         # Active cell of the tables in view
-        Input({'type': 'table', 'table_id': ALL, 'table_number': ALL}, "active_cell"),
+        Input({"type": "table", "table_id": ALL, "table_number": ALL}, "active_cell"),
         # Clicked "close_table" button
-        Input({'type': 'close_table_button', 'table_id': ALL, 'table_number': ALL}, 'n_clicks'),
+        Input(
+            {"type": "close_table_button", "table_id": ALL, "table_number": ALL},
+            "n_clicks",
+        ),
     ],
-    prevent_initial_call=True
+    prevent_initial_call=True,
 )
 def update_tables(active_cell, close_table_button_clicks):
     """
@@ -127,23 +147,23 @@ def update_tables(active_cell, close_table_button_clicks):
     # Get ID of element that was clicked -> decide which action to perform
     element_clicked = ctx.triggered_id
 
-    if element_clicked['type'] == 'table':  # If table was clicked
+    if element_clicked["type"] == "table":  # If table was clicked
         # Run table cell clicked actions
-        logging.debug('Table cell clicked')
+        logging.debug("Table cell clicked")
         # Abort if there is no active cell or no table clicked
         if active_cell[0] is None:
             return no_update
 
         return table_cell_clicked(active_cell)
 
-    elif element_clicked['type'] == 'close_table_button':
+    elif element_clicked["type"] == "close_table_button":
         # Run close table button clicked actions
-        logging.debug('Close table button clicked')
+        logging.debug("Close table button clicked")
         return close_table()
 
-    elif element_clicked['type'] == 'add_row_button':
-        logging.debug('Add row button clicked')
-        #return add_table_row(add_row_button_clicks, displayed_tables_data, displayed_tables_columns,
+    elif element_clicked["type"] == "add_row_button":
+        logging.debug("Add row button clicked")
+        # return add_table_row(add_row_button_clicks, displayed_tables_data, displayed_tables_columns,
         #                     displayed_tables_list, current_tables_view)
 
 
@@ -160,28 +180,32 @@ def table_cell_clicked(active_cell):
     print(f'table clicked: {table_clicked["table_number"]}')
 
     # Check if the clicked column is child column and contains sub-data
-    if active_cell[table_clicked['table_number']]['column_id'].startswith('!child_'):
+    if active_cell[table_clicked["table_number"]]["column_id"].startswith("!child_"):
 
         # Make deepcopy of prepared function_output_dict
         output_dict = deepcopy(function_output_dict)
 
         # Get child_table_id from the clicked column
-        child_table_id = active_cell[table_clicked['table_number']]['column_id'][7:]
+        child_table_id = active_cell[table_clicked["table_number"]]["column_id"][7:]
 
         # Update display property of child table in output_dict -> make visible
-        output_dict[f'style_table_row_{child_table_id}'] = {'display': 'block'}
+        output_dict[f"style_table_row_{child_table_id}"] = {"display": "block"}
 
         # Get the corresponding query_col of the child table
-        query_col = display_tables_dict[table_clicked['table_id']].child_tables[child_table_id].parent_tables[
-            table_clicked['table_id']][1]
+        query_col = (
+            display_tables_dict[table_clicked["table_id"]]
+            .child_tables[child_table_id]
+            .parent_tables[table_clicked["table_id"]][1]
+        )
         # Get corresponding query_i
-        query_id = active_cell[table_clicked['table_number']]['row_id']
-
+        query_id = active_cell[table_clicked["table_number"]]["row_id"]
 
         # Update query property of child table in output_dict -> query for corresponding item
-        output_dict[f'filter_query_table_{child_table_id}'] = f'{{!fk_{query_col}}}={query_id}'
+        output_dict[f"filter_query_table_{child_table_id}"] = (
+            f"{{!fk_{query_col}}}={query_id}"
+        )
 
-        #print(f' Callback returns: {output_dict}')
+        # print(f' Callback returns: {output_dict}')
         # Return dict of displayed tables and updated view (HTML) if currently displayed tables and None for active cell
         return output_dict
     else:
@@ -198,20 +222,25 @@ def close_table():
 
     output_dict = deepcopy(function_output_dict)
     # Update visibility this table in output_dict
-    output_dict[f'style_table_row_{close_button_clicked["table_id"]}'] = {'display': 'none'}
+    output_dict[f'style_table_row_{close_button_clicked["table_id"]}'] = {
+        "display": "none"
+    }
 
     return output_dict
 
+
 @app.callback(
-    Output({'type': 'table', 'table_id': MATCH, 'table_number': MATCH}, 'data'),
-    Input({'type': 'add_row_button', 'table_id': MATCH, 'table_number': MATCH}, 'n_clicks'),
-    State({'type': 'table', 'table_id': MATCH, 'table_number': MATCH}, 'data'),
-    State({'type': 'table', 'table_id': MATCH, 'table_number': MATCH}, 'columns'),
-    State({'type': 'table', 'table_id': MATCH, 'table_number': MATCH}, 'filter_query'),
-    prevent_initial_call=True
+    Output({"type": "table", "table_id": MATCH, "table_number": MATCH}, "data"),
+    Input(
+        {"type": "add_row_button", "table_id": MATCH, "table_number": MATCH}, "n_clicks"
+    ),
+    State({"type": "table", "table_id": MATCH, "table_number": MATCH}, "data"),
+    State({"type": "table", "table_id": MATCH, "table_number": MATCH}, "columns"),
+    State({"type": "table", "table_id": MATCH, "table_number": MATCH}, "filter_query"),
+    prevent_initial_call=True,
 )
 def add_table_row(clicks, table_data, table_columns, table_filter_query):
-    logging.debug('Add table row button clicked:')
+    logging.debug("Add table row button clicked:")
 
     # Turn table data into dataframe
     table_df = pd.DataFrame(table_data)
@@ -219,29 +248,32 @@ def add_table_row(clicks, table_data, table_columns, table_filter_query):
     # Construct new row entry
     new_row = {}
     for col in table_columns:
-        if col['id'].startswith('!child_'):  # if column is button column
-            new_row[col['id']] = 'Click me! (added)'
-        elif col['id'] == 'id':  # if column is ID column
+        if col["id"].startswith("!child_"):  # if column is button column
+            new_row[col["id"]] = "Click me! (added)"
+        elif col["id"] == "id":  # if column is ID column
             # Generate ID of new element to add -> must be unique! -> current max id +1
-            new_row[col['id']] = table_df['id'].max() + 1
-        elif col['id'].startswith('!fk_'):  # if column is query column
+            new_row[col["id"]] = table_df["id"].max() + 1
+        elif col["id"].startswith("!fk_"):  # if column is query column
             # Extract part of table query of this foreign key column -> exists only once -> get first list item
-            query = [k for k in table_filter_query.split("&&") if col['id'] in k][0]
+            query = [k for k in table_filter_query.split("&&") if col["id"] in k][0]
             # Find the index of the equal sign
-            index = query.find('=')
+            index = query.find("=")
 
             if index == -1:  # if no equal sign is found
-                new_row[col['id']] = ""  # no value is set in this column
+                new_row[col["id"]] = ""  # no value is set in this column
                 # TODO: fk_column is currently not editable -> user would not be able to provide fk_id
                 # -> for now this is ok?
             else:
-                new_row[col['id']] = int(query[index + 1:])  # value is set to be the fk_id of the current query
+                new_row[col["id"]] = int(
+                    query[index + 1 :]
+                )  # value is set to be the fk_id of the current query
         else:
-            new_row[col['id']] = ""
+            new_row[col["id"]] = ""
 
     table_data.append(new_row)
 
     return table_data
+
 
 def load_tables(tables_dict):
     """
@@ -269,13 +301,17 @@ def load_tables(tables_dict):
         # Get this tables original columns
         original_columns = []
         for c in df.columns:
-            if c == 'id':  # If column is ID column...
+            if c == "id":  # If column is ID column...
                 original_columns.append(
                     {"name": c, "id": c, "editable": False}  # ...it is NOT editable
                 )
             elif c in foreign_key_columns:  # If column is foreign_key column
                 original_columns.append(
-                    {"name": c, "id": "!fk_"+c, "editable": False}  # ...it is NOT editable and has prefix in id
+                    {
+                        "name": c,
+                        "id": "!fk_" + c,
+                        "editable": False,
+                    }  # ...it is NOT editable and has prefix in id
                 )
             else:  # Every regular column...
                 original_columns.append(
@@ -283,49 +319,61 @@ def load_tables(tables_dict):
                 )
 
         # Add !fk prefix to df foreign key columns to oad data correctly
-        df = df.rename(columns={c: '!fk_' + c for c in df.columns if c in foreign_key_columns})
+        df = df.rename(
+            columns={c: "!fk_" + c for c in df.columns if c in foreign_key_columns}
+        )
 
         # Create new "button" column for this table -> to link to child tables
         child_table_columns = []
 
         # Create button column for every child table of this dataframe
-        for child_table_id, child_table_relational_df in table_relational_df.child_tables.items():
+        for (
+            child_table_id,
+            child_table_relational_df,
+        ) in table_relational_df.child_tables.items():
             child_table_columns.append(
-                {'name': child_table_relational_df.table_name,  # Column name is child_table name
-                 'id': "!child_" + str(child_table_id),
-                 'editable': False  # "Button column" is not editable
-                 }
+                {
+                    "name": child_table_relational_df.table_name,  # Column name is child_table name
+                    "id": "!child_" + str(child_table_id),
+                    "editable": False,  # "Button column" is not editable
+                }
             )  # Column ID is identifier + child_table id
             # Add "button text" to display in the button column
             if len(df.index) > 0:  # only if the table to display is not empty
-                df.loc[:, "!child_" + str(child_table_id)] = 'Click me!'
+                df.loc[:, "!child_" + str(child_table_id)] = "Click me!"
 
         # Add original and custom created child_table columns
         columns = original_columns + child_table_columns
 
         # Generate dash datatable object
-        table = dash_table.DataTable(
-            id={"type": "table", "table_id": table_relational_df.table_id, "table_number": table_number},
-            columns=columns,
-            data=df.to_dict("records"),
-            page_size=10,
-            sort_action="native",
-            active_cell=None,
-            editable=True,
-            filter_action="native",
-            sort_mode='multi',
-            row_selectable='multi',
-            row_deletable=True,
-            selected_rows=[],
-            page_action='native',
-            page_current=0,
-        ),
+        table = (
+            dash_table.DataTable(
+                id={
+                    "type": "table",
+                    "table_id": table_relational_df.table_id,
+                    "table_number": table_number,
+                },
+                columns=columns,
+                data=df.to_dict("records"),
+                page_size=10,
+                sort_action="native",
+                active_cell=None,
+                editable=True,
+                filter_action="native",
+                sort_mode="multi",
+                row_selectable="multi",
+                row_deletable=True,
+                selected_rows=[],
+                page_action="native",
+                page_current=0,
+            ),
+        )
 
         # Create new row to add to app HTML layout
         # Generate header for new table
         header = table_relational_df.table_name
         # Make only first table visible on load
-        display = 'block' if table_number == 0 else 'none'
+        display = "block" if table_number == 0 else "none"
 
         new_table_row = html.Div(
             [
@@ -335,21 +383,36 @@ def load_tables(tables_dict):
                         dbc.Col(table, width=11),
                         dbc.Col(
                             [
-                                dbc.Row(dbc.Button("close", id={
-                                    'type': 'close_table_button',
-                                    "table_id": table_relational_df.table_id,
-                                    "table_number": table_number
-                                }) if table_number != 0 else None), # don't display close button for first table
-                                dbc.Row(dbc.Button('add row', id={
-                                    'type': 'add_row_button',
-                                    "table_id": table_relational_df.table_id,
-                                    'table_number': table_number
-                                }))
+                                dbc.Row(
+                                    dbc.Button(
+                                        "close",
+                                        id={
+                                            "type": "close_table_button",
+                                            "table_id": table_relational_df.table_id,
+                                            "table_number": table_number,
+                                        },
+                                    )
+                                    if table_number != 0
+                                    else None
+                                ),  # don't display close button for first table
+                                dbc.Row(
+                                    dbc.Button(
+                                        "add row",
+                                        id={
+                                            "type": "add_row_button",
+                                            "table_id": table_relational_df.table_id,
+                                            "table_number": table_number,
+                                        },
+                                    )
+                                ),
                             ],
-                            width=1)
-                    ])
-
-            ], id={'type': 'table_row_wrapper', 'table_id': table_relational_df.table_id}, style={'display': display}
+                            width=1,
+                        ),
+                    ]
+                ),
+            ],
+            id={"type": "table_row_wrapper", "table_id": table_relational_df.table_id},
+            style={"display": display},
         )
 
         # Append generated table to list of all tables to display
@@ -357,6 +420,7 @@ def load_tables(tables_dict):
         table_number += 1
 
     return tables_view
+
 
 navbar = dbc.NavbarSimple(
     children=[
@@ -373,13 +437,16 @@ navbar = dbc.NavbarSimple(
 app.layout = html.Div(
     [
         navbar,
-        dbc.Container([
-            dbc.Row([dbc.Col(dbc.Button("Save data"), width="2")], id='task_bar'),
-            dbc.Row(load_tables(display_tables_dict), id='tables_wrapper')
-        ], id='page-content'),
+        dbc.Container(
+            [
+                dbc.Row([dbc.Col(dbc.Button("Save data"), width="2")], id="task_bar"),
+                dbc.Row(load_tables(display_tables_dict), id="tables_wrapper"),
+            ],
+            id="page-content",
+        ),
     ]
 )
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run_server(debug=True, port=8053)
-    logging.debug('App running')
+    logging.debug("App running")

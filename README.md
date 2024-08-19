@@ -14,7 +14,7 @@ This folder is where you should place the code of your package (package name to 
 You can install it locally for developing with
 
     python setup.py install
-    
+
 More details for packaging are available on [https://packaging.python.org](https://packaging.python.org/tutorials/packaging-projects/)
 
 
