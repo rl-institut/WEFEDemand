@@ -49,7 +49,7 @@ class FormParser:
         self.agro_machine_demand = {}
         self.summary = {}
 
-        self.months_prefix = "G_1b"
+        self.months_prefix = constants.MONTHS_PREFIX
 
         self.output_dict = {}
 
@@ -68,6 +68,31 @@ class FormParser:
         self.form = form
         self.check_form_type()
         self.assign_prefix_suffix()
+
+    def check_form_type(self) -> None:
+        """
+        Check the form type based on the provided form data.
+
+        This function iterates over the items in the form dictionary and checks if the form type key is present in any of the keys. If it is, it checks if the corresponding value is "yes". If a matching form type is found, it assigns it to the `formtype` attribute of the object. If no form type is found, it assigns the default form type.
+
+        :return: None
+        :raises ValueError: If the form type is not known.
+
+        """
+        types = {
+            key: val for key, val in self.form.items() if constants.formtype_key in key
+        }
+        self.formtype = next(
+            (
+                form_t
+                for form_t in constants.formtype_names
+                if f"{constants.formtype_key}{form_t}" in types
+                and self.form[f"{constants.formtype_key}{form_t}"] == "yes"
+            ),
+            constants.formtype_names[0],
+        )
+        if self.formtype is None:
+            raise ValueError("Form type not known")
 
     def create_dictionary(self) -> dict:
         """
@@ -115,35 +140,9 @@ class FormParser:
                 )
             return self.output_dict
 
-    def check_form_type(self) -> None:
-        """
-        Check the form type based on the provided form data.
-
-        This function iterates over the items in the form dictionary and checks if the form type key is present in any of the keys. If it is, it checks if the corresponding value is "yes". If a matching form type is found, it assigns it to the `formtype` attribute of the object. If no form type is found, it assigns the default form type.
-
-        :return: None
-        :raises ValueError: If the form type is not known.
-
-        """
-        types = {
-            key: val for key, val in self.form.items() if constants.formtype_key in key
-        }
-        self.formtype = next(
-            (
-                form_t
-                for form_t in constants.formtype_names
-                if f"{constants.formtype_key}{form_t}" in types
-                and self.form[f"{constants.formtype_key}{form_t}"] == "yes"
-            ),
-            constants.formtype_names[0],
-        )
-        if self.formtype is None:
-            raise ValueError("Form type not known")
-
     def assign_prefix_suffix(self) -> None:
         """
         Assign the prefix and suffix based on the form type.
-
         Raises:
                 ValueError: If the form type is missing.
         """
@@ -177,89 +176,122 @@ class FormParser:
         return self.cooking_demand
 
     def create_service_water_demand(self, prefix):
+        """
+        Create the service water demand for the following types of water:
+        irrigation, livestock and service water.
+
+        Args:
+            prefix (dict): A dictionary with the prefixes for the different service water types.
+
+        Returns:
+            dict: A dictionary with the service water demand.
+        """
         rainy_season = None
 
+        # Iterate over the different service water types
         for key in prefix.keys():
             print(key)
+            # Check if the type is irrigation or livestock
             if 'irrigation' in key or 'animal_water' in key:
                 if key == "animal_water":
                     name = "livestock"
                 else:
                     name = key
+                # Get the rainy season for irrigation and livestock
                 rainy_season = self.form[f"{prefix['irrigation']}/dry_season{self.suffix}"]
+                # Check if the service water is used
                 if self.form[f"{prefix[key]}/{key}{self.suffix}"] == "yes":         
+                    # Read the service water demand for irrigation and livestock
                     self.service_water_demand[name] = self.read_service_water(name, prefix[key], rainy_season)
             else:
+                # Read the service water demand for service water
                 self.service_water_demand[key] = self.read_service_water(key, prefix[key])
-            
-            return self.service_water_demand
         
-            '''
-            irr_dict = self.read_irr_water(prefix["irrigation_water"])
-            animal_dict = self.read_animal_water(
-                prefix["animal_water"], prefix["irrigation_water"]
-            )
-
-            self.service_water_demand = {
-                "irrigation": irr_dict,
-                "livestock": animal_dict,
-            }
-            return self.service_water_demand
-        else:
-            self.service_water_demand = {"services": self.read_service_water(prefix)}'''
+        return self.service_water_demand
 
     def create_drinking_water_demand(self, drinking_prefix):
+        """
+        Create the drinking water demand for a given prefix.
+
+        Args:
+            drinking_prefix (str): The prefix for the drinking water demand.
+
+        Returns:
+            dict: A dictionary with the drinking water demand.
+        """
+        # Get the unit of measurement for the drinking water
         unit_of_measurement = self.form[
             f"{drinking_prefix}/drinking_express{self.suffix}"
         ]
+        # Get the amount of water used
         unit = float(self.form[f"{drinking_prefix}/drink_use{self.suffix}"])
+        # Get the time window for the drinking water usage
         string_drink_window = self.form[f"{drinking_prefix}/drink_time{self.suffix}"]
 
+        buck_conversion = None
+        # Check if the unit of measurement is in buckets
         if "buck" in unit_of_measurement:
             buck_conversion = float(
                 self.form[f"{drinking_prefix}/drink_dim{self.suffix}"]
             )
-        else:
-            buck_conversion = None
-
+        # Calculate the drinking water demand
         consume = utils.convert_perliter(unit_of_measurement, unit, buck_conversion)
+        # Extract the time windows for the drinking water usage
         drink_usage_time = utils.extract_time_windows(string_drink_window)
 
-        time_window = self.form[f"{drinking_prefix}/drink_time{self.suffix}"].split()
-
-        # self.drinking_water_demand = {"daily_demand" : consume, "water_window" : utils.convert_usage_windows(drink_usage_time) }
+        # Create the drinking water demand dictionary
         self.drinking_water_demand = {"daily_demand": consume}
-        win = utils.convert_usage_windows_2(drink_usage_time)
+        # Add the time window information to the dictionary
+        win, _ = utils.convert_usage_windows(drink_usage_time)
         for key, item in win.items():
             self.drinking_water_demand[f"water_{key}"] = item
         return self.drinking_water_demand
 
     def create_elec_appliance_demand(self, electric_prefix):
+        """
+        Create the electric appliance demand for a given prefix.
+
+        Args:
+            electric_prefix (str): The prefix for the electric appliance demand.
+
+        Returns:
+            dict: A dictionary with the electric appliance demand.
+        """
         app_dict = {}
 
+        # Loop through every appliance
         for key, data in self.form.items():
             if electric_prefix in key and "_power" in key:
                 app_name = key.split(sep="/")[1].split(sep="_power")[0]
+
+                # Get the number of appliances
                 number = float(
                     self.form[f"{electric_prefix}/{app_name}_number{self.suffix}"]
                 )
+                # Get the power of the appliance
                 power = float(
                     self.form[f"{electric_prefix}/{app_name}_power{self.suffix}"]
                 )
+                # Get the daily usage time of the appliance
                 hour = float(
                     self.form[f"{electric_prefix}/{app_name}_hour_wd{self.suffix}"]
                 )
+                # Get the switch on time of the appliance
                 switch_on = int(
                     self.form[f"{electric_prefix}/{app_name}_min_on{self.suffix}"]
                 )
+                # Get the time window of the appliance
                 string = self.form[
                     f"{electric_prefix}/{app_name}_usage_wd{self.suffix}"
                 ]
 
+                # Extract the time windows for the appliance
                 usage_wd_dict = utils.extract_time_windows(string)
 
-                usage_wd = utils.convert_usage_windows_2(usage_wd_dict)
+                # Convert the time windows to a dictionary
+                usage_wd, _ = utils.convert_usage_windows(usage_wd_dict)
 
+                # Create the dictionary for this appliance
                 app_dict[app_name] = {
                     "num_app": number,  # quantity of appliance
                     "power": power,  # appliance power in W
@@ -267,81 +299,66 @@ class FormParser:
                     "func_cycle": switch_on,
                     # "time_window_1" : usage_wd                           # appliance usage windows
                 }
+                # Add the time window information to the dictionary
                 for key, item in usage_wd.items():
                     app_dict[app_name][f"usage_{key}"] = item
 
+        # Store the results in the class
         self.appliance_demand = app_dict
         # print(self.appliance_demand)
+        # Return the results
         return self.appliance_demand
 
     def create_agroprocessing_demand(self, agro_prefix):
+        """
+        Create a dictionary of agroprocessing machine demand based on the form data.
+
+        Args:
+            agro_prefix (str): The prefix of the form data for the agroprocessing section.
+
+        Returns:
+            dict: A dictionary containing the agroprocessing machine demand data.
+        """
+
+        # Reading consumption for every machine used
+        month_name = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
         for key, data in self.form.items():
             if f"{agro_prefix}/" in key and f"_motor{self.suffix}" in key:
                 mach_name = key.replace(f"{agro_prefix}/", "", 1).replace(
                     f"_motor{self.suffix}", "", 1
                 )  # machinery name
+
                 fuel_AP = self.form[f"{agro_prefix}/{mach_name}_motor{self.suffix}"]
-                product = self.form[
-                    f"{agro_prefix}/{mach_name}_prod_onerun{self.suffix}"
-                ]
-                hourly_prod = self.form[
-                    f"{agro_prefix}/{mach_name}_hour_prod{self.suffix}"
-                ]
+                product = self.form[f"{agro_prefix}/{mach_name}_prod_onerun{self.suffix}"]
+                hourly_prod = self.form[f"{agro_prefix}/{mach_name}_hour_prod{self.suffix}"]
                 efficiency = self.form[f"{agro_prefix}/{mach_name}_eff{self.suffix}"]
                 hour_AP = self.form[f"{agro_prefix}/{mach_name}_hour{self.suffix}"]
                 string_AP = self.form[f"{agro_prefix}/{mach_name}_usage{self.suffix}"]
 
+                # Extract the time windows for the machine
                 usage_AP_dict = utils.extract_time_windows(string_AP)
 
-                months_AP = {
-                    "January": float(
-                        self.form[f"{agro_prefix}/{mach_name}_prod_jan{self.suffix}"]
-                    ),
-                    "February": float(
-                        self.form[f"{agro_prefix}/{mach_name}_prod_feb{self.suffix}"]
-                    ),
-                    "March": float(
-                        self.form[f"{agro_prefix}/{mach_name}_prod_mar{self.suffix}"]
-                    ),
-                    "April": float(
-                        self.form[f"{agro_prefix}/{mach_name}_prod_apr{self.suffix}"]
-                    ),
-                    "May": float(
-                        self.form[f"{agro_prefix}/{mach_name}_prod_may{self.suffix}"]
-                    ),
-                    "June": float(
-                        self.form[f"{agro_prefix}/{mach_name}_prod_jun{self.suffix}"]
-                    ),
-                    "July": float(
-                        self.form[f"{agro_prefix}/{mach_name}_prod_jul{self.suffix}"]
-                    ),
-                    "August": float(
-                        self.form[f"{agro_prefix}/{mach_name}_prod_aug{self.suffix}"]
-                    ),
-                    "September": float(
-                        self.form[f"{agro_prefix}/{mach_name}_prod_sep{self.suffix}"]
-                    ),
-                    "October": float(
-                        self.form[f"{agro_prefix}/{mach_name}_prod_oct{self.suffix}"]
-                    ),
-                    "November": float(
-                        self.form[f"{agro_prefix}/{mach_name}_prod_nov{self.suffix}"]
-                    ),
-                    "December": float(
-                        self.form[f"{agro_prefix}/{mach_name}_prod_dec{self.suffix}"]
-                    ),
-                }
+                # Initialize a dictionary to store the crop processed per day
+                months_AP = {}
 
+                # Read the crop processed per day for each month
+                for i, month in enumerate(month_name):
+                    months_AP[i+1] = float(
+                        self.form[f"{agro_prefix}/{mach_name}_prod_{month}{self.suffix}"]
+                    )
+
+                # Calculate the crop processed per day for each month
                 for k in months_AP:
                     months_AP[k] = utils.convert_perday(
                         months_AP[k],
                         self.form[f"{agro_prefix}/{mach_name}_prod_exp{self.suffix}"],
                     )
-                months_AP = utils.rename_keys(months_AP)
 
+                # Replace husker with husking_mill
                 if mach_name == "husker":
                     mach_name = "husking_mill"
 
+                # Create the dictionary for this machine
                 self.agro_machine_demand[mach_name] = {
                     "fuel": fuel_AP,  # agroprocessing machine fuel
                     "crop_processed_per_run": float(
@@ -355,9 +372,14 @@ class FormParser:
                     ),  # crop processed [kg] per unit of fuel
                     "usage_time": float(hour_AP),  # machine operating usage time in min
                     # "time_window": utils.convert_usage_windows(usage_AP_dict),    # machine usage windows
-                    "crop_processed_per_day": months_AP,  # crop processed on a typical working day for each months
+                    "crop_processed_per_day": months_AP,  # crop processed on a typical working day for each m
                 }
-                for key, item in utils.convert_usage_windows_2(usage_AP_dict).items():
+
+                # Extract the time windows and convert them to a dictionary
+                win, _ = utils.convert_usage_windows(usage_AP_dict)
+
+                # Add the time windows to the dictionary for this machine
+                for key, item in win.items():
                     self.agro_machine_demand[mach_name][f"usage_{key}"] = item
 
         return self.agro_machine_demand
@@ -449,90 +471,23 @@ class FormParser:
                 months.append(months_defaults[month])
         return months
 
-    def read_irr_water(self, irr_water_prefix):
-        if self.form[f"{irr_water_prefix}/irrigation{self.suffix}"] == "yes":
-
-            pumping_head_irr = float(
-                self.form[f"{irr_water_prefix}/pump_head_irr{self.suffix}"]
-            )
-            demand_time_irr = float(
-                self.form[f"{irr_water_prefix}/irr_time{self.suffix}"]
-            )
-
-            uom_dry_irr = self.form[f"{irr_water_prefix}/express_dry{self.suffix}"]
-            unit_dry_irr = float(
-                self.form[f"{irr_water_prefix}/irrigation_dry{self.suffix}"]
-            )
-            string_irr_dry_window = self.form[
-                f"{irr_water_prefix}/usage_dry{self.suffix}"
-            ]
-
-            if "buck" in uom_dry_irr:
-                buck_conversion = float(
-                    self.form[f"{irr_water_prefix}/dim_dry{self.suffix}"]
-                )
-            else:
-                buck_conversion = None
-
-            consume_dry_irr = utils.convert_perliter(
-                uom_dry_irr, unit_dry_irr, buck_conversion
-            )
-            dry_irr_usage_time = utils.extract_time_windows(string_irr_dry_window)
-
-            uom_rainy_irr = self.form[f"{irr_water_prefix}/express_rainy{self.suffix}"]
-            unit_rainy_irr = float(
-                self.form[f"{irr_water_prefix}/irrigation_rainy{self.suffix}"]
-            )
-            string_irr_rainy_window = self.form[
-                f"{irr_water_prefix}/usage_rainy{self.suffix}"
-            ]
-
-            if "buck" in uom_rainy_irr:
-                buck_conversion = float(
-                    self.form[f"{irr_water_prefix}/dim_rainy{self.suffix}"]
-                )
-            else:
-                buck_conversion = None
-
-            consume_rainy_irr = utils.convert_perliter(
-                uom_rainy_irr, unit_rainy_irr, buck_conversion
-            )
-            rainy_irr_usage_time = utils.extract_time_windows(string_irr_rainy_window)
-
-            string_rainy = self.form[f"{irr_water_prefix}/dry_season{self.suffix}"]
-
-            season_dict = copy(months_defaults)
-            for month in season_dict:
-                if month in string_rainy:
-                    season_dict[month] = consume_rainy_irr
-                else:
-                    season_dict[month] = consume_dry_irr
-
-            irr_season_dict = utils.rename_keys(season_dict)
-
-            irr_windows = {}
-
-            for k in dry_irr_usage_time.keys():
-                irr_windows[k] = dry_irr_usage_time[k] + rainy_irr_usage_time[k]
-
-            out_windows = utils.convert_usage_windows(irr_windows)
-            while len(out_windows) < 3:
-                out_windows.append(None)
-            if len(out_windows) > 3:
-                raise BaseException("got a problem, more than 3 windows")
-
-            return {
-                "daily_demand": irr_season_dict,  # irrigation water demand of typical day for each month
-                # "irr_window_dry": utils.convert_usage_windows(dry_irr_usage_time),      # irrigation water time window (dry season)
-                # "irr_window_rainy" : utils.convert_usage_windows(rainy_irr_usage_time), # irrigation water time window (rainy season)
-                "usage_windows": out_windows,
-                "pumping_head": pumping_head_irr,
-                "demand_duration": demand_time_irr,
-            }
-        else:
-            return {}
-
     def read_service_water(self, key, prefix, rainy_season = None):
+        """
+        Reads data related to service water consumption from the form. Handle three type of consumptions data:
+            1. Irrigation
+            2. Livestock
+            3. Services 
+
+        Args:
+            key (str): type of service water consumption, can be 'irrigation',
+                'livestock', or 'services'.
+            prefix (str): prefix for the keys to be read from the form.
+            rainy_season (list of str, optional): months of the rainy season.
+                Defaults to None.
+
+        Returns:
+            dict: A dictionary with the service water consumption data.
+        """
         ## Setting keys names
         if key == "irrigation":
             uom_key = "express"
@@ -598,7 +553,7 @@ class FormParser:
                     usage_time[key] += temp[key]
 
         ## Setting windows
-        out_windows = utils.convert_usage_windows(usage_time)
+        _ , out_windows = utils.convert_usage_windows(usage_time)
         while len(out_windows) < 3:
             out_windows.append(None)
 
@@ -617,143 +572,39 @@ class FormParser:
             "demand_duration": demand_time,
         }
 
-    def read_animal_water(self, a_water_prefix, irr_water_prefix):
-        if self.form[f"{a_water_prefix}/animal_water{self.suffix}"] == "yes":
-            pumping_head_animal = float(
-                self.form[f"{a_water_prefix}/pump_head_animal{self.suffix}"]
-            )
-            demand_time_animal = float(
-                self.form[f"{a_water_prefix}/animal_time{self.suffix}"]
-            )
-
-            uom_dry_animal = self.form[
-                f"{a_water_prefix}/express_animal_dry{self.suffix}"
-            ]
-            unit_dry_animal = float(
-                self.form[f"{a_water_prefix}/animal_dry{self.suffix}"]
-            )
-            string_animal_dry_window = self.form[
-                f"{a_water_prefix}/usage_animal_dry{self.suffix}"
-            ]
-
-            if "buck" in uom_dry_animal:
-                buck_conversion = float(
-                    self.form[f"{a_water_prefix}/dim_anim_dry{self.suffix}"]
-                )
-            else:
-                buck_conversion = None
-
-            consume_dry_animal = utils.convert_perliter(
-                uom_dry_animal, unit_dry_animal, buck_conversion
-            )
-            dry_animal_usage_time = utils.extract_time_windows(string_animal_dry_window)
-
-            uom_rainy_animal = self.form[
-                f"{a_water_prefix}/express_animal_rainy{self.suffix}"
-            ]
-            unit_rainy_animal = float(
-                self.form[f"{a_water_prefix}/animal_rainy{self.suffix}"]
-            )
-            string_animal_rainy_window = self.form[
-                f"{a_water_prefix}/usage_animal_rainy{self.suffix}"
-            ]
-
-            if "buck" in uom_rainy_animal:
-                buck_conversion = float(
-                    self.form[f"{a_water_prefix}/dim_anim_rainy{self.suffix}"]
-                )
-            else:
-                buck_conversion = None
-
-            consume_rainy_animal = utils.convert_perliter(
-                uom_rainy_animal, unit_rainy_animal, buck_conversion
-            )
-            rainy_animal_usage_time = utils.extract_time_windows(
-                string_animal_rainy_window
-            )
-
-            string_rainy_animal = self.form[
-                f"{irr_water_prefix}/dry_season{self.suffix}"
-            ]
-            season_dict_animal = copy(months_defaults)
-
-            for month in season_dict_animal:
-                if month in string_rainy_animal:
-                    season_dict_animal[month] = consume_rainy_animal
-                else:
-                    season_dict_animal[month] = consume_dry_animal
-
-            anim_season_dict = utils.rename_keys(season_dict_animal)
-
-            a_windows = {}
-
-            for k in dry_animal_usage_time.keys():
-                a_windows[k] = dry_animal_usage_time[k] + rainy_animal_usage_time[k]
-
-            out_windows = utils.convert_usage_windows(a_windows)
-            while len(out_windows) < 3:
-                out_windows.append(None)
-            if len(out_windows) > 3:
-                raise BaseException("got a problem, more than 3 windows")
-
-            return {
-                "daily_demand": anim_season_dict,  # animal water demand of typical day for each month
-                # "animal_window_dry": utils.convert_usage_windows(dry_animal_usage_time),                        # animal water time window (dry season)
-                # "animal_window_rainy" : utils.convert_usage_windows(rainy_animal_usage_time),                    # animal water time window (rainy season)
-                "usage_windows": out_windows,
-                "pumping_head": pumping_head_animal,
-                "demand_duration": demand_time_animal,
-            }
-        else:
-            return {}
-
-    def read_service_water_1(self, prefix):
-        service_water_dict_B = {}
-
-        unit_of_measurement_serv = self.form[f"{prefix}/service_express{self.suffix}"]
-        unit_serv = float(self.form[f"{prefix}/serv_use{self.suffix}"])
-        string_serv_window = self.form[f"{prefix}/serv_time{self.suffix}"]
-        pumping_head = float(self.form[f"{prefix}/pump_head{self.suffix}"])
-        demand_time = float(self.form[f"{prefix}/serv_duration{self.suffix}"])
-
-        if "buck" in unit_of_measurement_serv:
-            buck_conversion = float(self.form[f"{prefix}/serv_dim{self.suffix}"])
-        else:
-            buck_conversion = None
-
-        consume_serv = utils.convert_perliter(
-            unit_of_measurement_serv, unit_serv, buck_conversion
-        )
-        service_usage_time = utils.extract_time_windows(string_serv_window)
-
-        daily_demand = copy(months_defaults)
-        daily_water_demand = utils.set_values(daily_demand, consume_serv)
-
-        out_windows = utils.convert_usage_windows(service_usage_time)
-        while len(out_windows) < 3:
-            out_windows.append(None)
-
-        return {
-            "daily_demand": daily_water_demand,
-            "usage_windows": out_windows,
-            "pumping_head": pumping_head,
-            "demand_duration": demand_time,
-        }
-
     def read_cooking(self, cooking_prefix):
+        """
+        Read the cooking data from the form and store it in a dictionary.
+
+        Args:
+            cooking_prefix (str): The prefix for the form data related to cooking.
+
+        Returns:
+            dict: A dictionary where the keys are the names of the fuels and the
+            values are dictionaries with the keys "time", "unit", "quantity", and
+            "fuel_amount". "time" is the time window to express the fuel consumption,
+            "unit" is the unit to express fuel consumption, "quantity" is the quantity of
+            unit consumption in the time window, and "fuel_amount" is the daily fuel
+            consumption.
+        """
         cook_dict = {}
 
         for key, data in self.form.items():
             if cooking_prefix in key and "unit" in key:
+                # Get the fuel name by removing the prefix and the suffix
                 fuel_name = key.replace(cooking_prefix, "", 1).replace(
                     f"_unit{self.suffix}", "", 1
                 )
+                # Get the time window to express fuel consumption
                 time_cons = self.form[f"{cooking_prefix}{fuel_name}_time{self.suffix}"]
+                # Get the unit to express fuel consumption
                 unit = self.form[f"{cooking_prefix}{fuel_name}_unit{self.suffix}"]
+                # Get the quantity of unit consumption in the time window
                 quantity = float(
                     self.form[f"{cooking_prefix}{fuel_name}_amount{self.suffix}"]
                 )
 
+                # If the unit is a bag or cylinder, get the conversion factor
                 if unit == "bag" or unit == "cylinder":
                     bag_to_kg = float(
                         self.form[f"{cooking_prefix}{fuel_name}_bag{self.suffix}"]
@@ -761,9 +612,12 @@ class FormParser:
                 else:
                     bag_to_kg = None
 
+                # Convert the quantity to kilograms
                 q = utils.convert_perkg(quantity, unit, fuel_name, bag_to_kg)
+                # Convert the quantity to daily consumption
                 daily_cons = utils.convert_perday(q, time_cons)
 
+                # Store the data in the dictionary
                 cook_dict[fuel_name.split(sep="/")[1]] = {
                     "time": time_cons,  # time window to express fuel consumption
                     "unit": unit,  # unit to express fuel consumption
@@ -774,24 +628,38 @@ class FormParser:
         return cook_dict
 
     def read_meal(self, meal_prefix, cooking_fuels):
+        """
+        Read the data of meals from the form and store it in a dictionary.
+
+        Args:
+            meal_prefix (str): The prefix of the form data for the meal section.
+            cooking_fuels (list): A list of the fuels used for cooking.
+
+        Returns:
+            dict: A dictionary containing the data of meals.
+        """
         meal_dict = {}
         for key, data in self.form.items():
             if meal_prefix in key and "meal_per_day" in key:
+                # Get the number of meals per day
                 n_meal = utils.how_many_meal(
                     self.form[f"{meal_prefix}/meal_per_day{self.suffix}"]
                 )
                 for n in np.arange(n_meal) + 1:
+                    # Get the fuel used for the meal
                     fuel = self.form[f"{meal_prefix}/fuels_meal{n}{self.suffix}"].split(
                         sep="_"
                     )[1]
                     if fuel not in cooking_fuels:
                         raise ValueError(
-                            "This fuel has not be defined in cooking fuels"
+                            "This fuel has not been defined in cooking fuels"
                         )
 
+                    # Get the stove used for the meal
                     cooking_device = self.form[
                         f"{meal_prefix}/cooking_meal{n}{self.suffix}"
                     ]
+                    # Get the time window of the meal
                     string_meal_window = self.form[
                         f"{meal_prefix}/usage_meal{n}{self.suffix}"
                     ]
@@ -800,7 +668,10 @@ class FormParser:
                     )
                     meal_usage_time = utils.extract_time_windows(string_meal_window)
 
-                    meal_time_window = utils.convert_usage_windows(meal_usage_time)
+                    # Get the time window of the meal
+                    _, meal_time_window = utils.convert_usage_windows(
+                        meal_usage_time
+                    )
 
                     meal_dict[f"meal_{n}"] = {
                         "fuel": fuel,  # fuel used for meals
@@ -814,18 +685,3 @@ class FormParser:
                     }
         return meal_dict
 
-
-if __name__ == "__main__":
-
-    forms = utils.get_survey(survey_id="affG8Fq5Suc99Sg9UB5hPv")
-    formparser = FormParser(forms[3])
-    formparser.create_dictionary()
-
-    # print(formparser.appliance_demand)
-    # print(formparser.cooking_demand)
-    # print(formparser.output_dict['cooking_demand'])
-
-    print(formparser.formtype)
-    # print(formparser.output_dict['appliances'])
-
-    print(formparser.output_dict["service_water_demands"])
