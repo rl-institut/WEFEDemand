@@ -1,6 +1,8 @@
 # %% Name of different type of form
 formtype_names = ["household", "business", "service", "large_scale_farm", "local_aut"]
 
+MONTHS_PREFIX = "G_1b"
+
 # %% defaults usage time windows in a day
 USAGE_WD_DEFAULTS = {
     "0-7": None,
