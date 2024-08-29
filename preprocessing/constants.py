@@ -59,6 +59,14 @@ DENSITY_DICT = {
 FUEL_UNITS_CONVERSION = {"kilogram": 1, "bag": None, "liter": None, "cylinder": None}
 TIME_UNITS_CONVERSION = {"daily": 1, "weekly": 7, "monthly": 30}
 
+BUSINESS_KEYS = ['number_BIZ_shop','number_BIZ_appliances','number_BIZ_pharmacy', 'number_BIZ_butcher',
+         'number_BIZ_barber', 'number_BIZ_salon','number_BIZ_money_transfer', 'number_BIZ_recharing',
+         'number_BIZ_internet', 'number_BIZ_music_shop','number_BIZ_print_shop', 'number_BIZ_bike_mech',
+         'number_BIZ_vehicle_mech', 'number_BIZ_device_repair','number_BIZ_welding_workshop', 
+         'number_BIZ_wood_workshop','number_BIZ_tailoring_workshop', 'number_BIZ_restaurant','number_BIZ_bar',
+         'number_BIZ_hotel','number_BIZ_brewery', 'number_BIZ_mill','number_BIZ_other_mill', 
+         'number_BIZ_slaughterhouse','number_BIZ_juice', 'number_BIZ_cinema','number_BIZ_other']
+
 
 # %% Key to find the type of form, as defined in kobo CSV configuration file
 formtype_key = "G_0/respondent_"
@@ -108,7 +116,7 @@ prefix = {
         "meal": "AP_9l",
         "electric": "AP_8",
         "drinking_water": "AP_3",
-        "service_water": {"animal_water": "AP_6", "irrigation_water": "AP_5", "services": 'AP_3'},
+        "service_water": {"animal_water": "AP_6", "irrigation": "AP_5", "services": 'AP_3'},
         "agro_machine": "AP_10",
     },
     "business": {
