@@ -104,7 +104,7 @@ class FormParser:
 
         :return: A dictionary with the parsed form data.
         """
-        print(f"I am processing {self.formtype} form")
+        print(f"I am processing form {self.form['_id']} which is a {self.formtype}")
         if self.formtype == "local_aut":
             self.summary = self.create_local_aut_summary()
             return self.summary
@@ -190,7 +190,6 @@ class FormParser:
 
         # Iterate over the different service water types
         for key in prefix.keys():
-            print(key)
             # Check if the type is irrigation or livestock
             if 'irrigation' in key or 'animal_water' in key:
                 if key == "animal_water":
@@ -427,7 +426,13 @@ class FormParser:
             self.form[f"{self.prefix['religion_composition']}/number_other_serv"]
         )
 
+
         # Business numberosity
+        business_numerosity = {}
+        for b in constants.BUSINESS_KEYS:
+            key = b.split('BIZ_')[-1]
+            business_numerosity[key] = int(self.form[f"{self.prefix['economy_composition']}/{b}"])
+        
 
         household_numerosity = {
             "low_income_hh": number_low_income,
@@ -449,6 +454,10 @@ class FormParser:
         }
 
     # reading functions
+
+    @utils.warn_and_skip
+    def _read_form(self, key):
+        return self.form[key]
 
     def read_working_days(self, prefix):
         if prefix is not None:
@@ -498,7 +507,7 @@ class FormParser:
             dim_key = "dim"
 
         elif key == "livestock":
-            uom_key = "exprerss_animal"
+            uom_key = "express_animal"
             unit_key = "animal"
             window_key = "usage_animal"
             pump_key = "pump_head_animal"

@@ -2,6 +2,8 @@
 
 import numpy as np
 import pandas as pd
+import functools
+import warnings
 
 from copy import copy
 from koboextractor import KoboExtractor
@@ -222,3 +224,14 @@ def load_kobo_data(form_id, api_token):
 
     # return the dictionary of survey results and the pandas DataFrame
     return results_dict, df
+
+
+def warn_and_skip(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            warnings.warn(f"Error processing {func.__name__}: {str(e)}", category=UserWarning)
+            return None
+    return wrapper
