@@ -54,29 +54,40 @@ class RampControl:
             ),
         }
 
-        demand_profiles = {}
+        demand_profiles_mean = {}
+        demand_profiles_max = {}
         # Run RAMP model for each demand
         for demand_name, use_cases in self.opti_mg_uses_cases.items():
-            demand_profiles[demand_name] = self.run_use_cases(
+            demand_profiles_mean[demand_name] = self.run_use_cases(
                 use_cases, input_data_dict, demand_name
             )
+            demand_profiles_max[demand_name] = demand_profiles_mean[demand_name]
+
 
             # Resample to hourly values
             if demand_name == "service_water" or demand_name == "drinking_water":
                 # Water demands are resampled as hourly sum
-                demand_profiles[demand_name] = (
-                    demand_profiles[demand_name].resample("h").sum()
+                demand_profiles_max[demand_name] = (
+                    demand_profiles_max[demand_name].resample("h").sum()
+                )
+                demand_profiles_mean[demand_name] = (
+                    demand_profiles_mean[demand_name].resample("h").sum()
                 )
             else:
                 # Energy demands are resampled as hourly mean
-                demand_profiles[demand_name] = (
-                    demand_profiles[demand_name].resample("h").mean()
+                demand_profiles_max[demand_name] = (
+                    demand_profiles_max[demand_name].resample("h").max()
+                )
+                demand_profiles_mean[demand_name] = (
+                    demand_profiles_mean[demand_name].resample("h").mean()
                 )
 
         # Combine all demand profiles in multi-index dataframe
-        demand_profiles_df = pd.concat(demand_profiles, axis=1)
+        demand_profiles_df_mean = pd.concat(demand_profiles_mean, axis=1)
+        demand_profiles_df_max = pd.concat(demand_profiles_max, axis=1)
 
-        return demand_profiles_df
+
+        return demand_profiles_df_mean, demand_profiles_df_max
 
     def run_use_cases(self, use_cases_list, user_data, description):
         """
@@ -211,7 +222,7 @@ class RampControl:
 
                     cooking_window = [
                         cooking_demand_data["cooking_window_start"] * 60,
-                        cooking_demand_data["cooking_window_end"] * 60,
+                            cooking_demand_data["cooking_window_end"] * 60,
                     ]
 
                     # Get cooking metadata
@@ -241,7 +252,7 @@ class RampControl:
 
                     if present:  # if user is present
                         func_time = int(
-                            cooking_demand_data["cooking_time"] * 60
+                            cooking_demand_data["cooking_time"]
                         )  # Duration of this cooking demand
                     else:  # if not present
                         func_time = 0  # func_time of cooking demand is 0 -> therefore no demand is modeled
@@ -619,6 +630,10 @@ class RampControl:
                             "%s: No metadate provided in admin input." % demand_name
                         )
 
+                    if not len(demand_data):
+                        print(f"WARNING: {demand_data} is empty")
+                        continue
+
                     # Count how many usage windows are defined
                     num_usage_windows = sum(
                         x is not None for x in demand_data["usage_windows"]
@@ -633,22 +648,34 @@ class RampControl:
                     # Get this month's daily volume of this demand
                     daily_demand = demand_data["daily_demand"][month]
 
+                    usage_windows = demand_data.get("usage_windows", [])
+
+                    window_1 = (
+                        minutes_wd(usage_windows[0]) if len(usage_windows) > 0 else None
+                    )
+                    window_2 = (
+                        minutes_wd(usage_windows[1]) if len(usage_windows) > 1 else None
+                    )
+                    window_3 = (
+                        minutes_wd(usage_windows[2]) if len(usage_windows) > 2 else None
+                    )
+
                     # Add appliance to user instance
                     new_user.add_appliance(
                         name=demand_name,
                         number=1,  # Each water demand is modeled separately
                         power=daily_demand
                         / (
-                            demand_data["demand_duration"] * 60
+                            demand_data["demand_duration"]
                         ),  # = flow rate: total_demand/duration
-                        func_time=demand_data["demand_duration"] * 60,
+                        func_time=demand_data["demand_duration"],
                         time_fraction_random_variability=demand_metadata[
                             "daily_demand_variability"
                         ],
                         num_windows=num_usage_windows,
-                        window_1=minutes_wd(demand_data["usage_windows"][0]),
-                        window_2=minutes_wd(demand_data["usage_windows"][1]),
-                        window_3=minutes_wd(demand_data["usage_windows"][2]),
+                        window_1=window_1,
+                        window_2=window_2,
+                        window_3=window_3,
                         wd_we_type=2,  # Service water demand is the same on every day of the week
                     )
 
