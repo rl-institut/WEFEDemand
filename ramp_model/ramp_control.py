@@ -1,8 +1,8 @@
-import ramp
+import ramp  # type: ignore
 import pandas as pd
 import numpy as np
 import copy
-from tqdm import tqdm
+from tqdm import tqdm  # type: ignore
 
 from helpers.exceptions import MissingInput
 
@@ -63,7 +63,6 @@ class RampControl:
             )
             demand_profiles_max[demand_name] = demand_profiles_mean[demand_name]
 
-
             # Resample to hourly values
             if demand_name == "service_water" or demand_name == "drinking_water":
                 # Water demands are resampled as hourly sum
@@ -85,7 +84,6 @@ class RampControl:
         # Combine all demand profiles in multi-index dataframe
         demand_profiles_df_mean = pd.concat(demand_profiles_mean, axis=1)
         demand_profiles_df_max = pd.concat(demand_profiles_max, axis=1)
-
 
         return demand_profiles_df_mean, demand_profiles_df_max
 
@@ -222,7 +220,7 @@ class RampControl:
 
                     cooking_window = [
                         cooking_demand_data["cooking_window_start"] * 60,
-                            cooking_demand_data["cooking_window_end"] * 60,
+                        cooking_demand_data["cooking_window_end"] * 60,
                     ]
 
                     # Get cooking metadata
@@ -238,17 +236,26 @@ class RampControl:
 
                     # Calculate thermal power of this cooking demand in W !!
                     # Thermal_power = ((fuel_amount_of_meal * energy_content * stove_efficiency) / cooking_time) * 1000
-                    cooking_power = int(
-                        (
+                    if cooking_demand_data["fuel"] == "elec":
+                        cooking_power = int(
                             (
-                                cooking_demand_data["fuel_amount"]
-                                * fuel_data["energy_content"]
-                                * stove_data["efficiency"]
+                                fuel_data["energy_content"]
+                                * cooking_demand_data["cooking_time"]
                             )
-                            / cooking_demand_data["cooking_time"]
+                            * 1000
                         )
-                        * 1000
-                    )
+                    else:
+                        cooking_power = int(
+                            (
+                                (
+                                    cooking_demand_data["fuel_amount"]
+                                    * fuel_data["energy_content"]
+                                    * stove_data["efficiency"]
+                                )
+                                / cooking_demand_data["cooking_time"]
+                            )
+                            * 1000
+                        )
 
                     if present:  # if user is present
                         func_time = int(

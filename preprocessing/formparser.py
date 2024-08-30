@@ -474,7 +474,9 @@ class FormParser:
                     self.form[f"{self.prefix['economy_composition']}/{b}"]
                 )
             except:
-                print(f"Warning: {key} not found. Setting 0")
+                print(
+                    f"WARNING: Key {key} not found while compiling local autority summary. Setting it to 0"
+                )
                 business_numerosity[key] = 0
 
         household_numerosity = {
@@ -688,6 +690,15 @@ class FormParser:
                     "quantity": quantity,  # quantity of unit consumption in the time window
                     "fuel_amount": daily_cons,  # daily fuel consumption
                 }
+            for key in self.form:
+                if cooking_prefix in key and "fuels_" in key:
+                    if type(self.form[key]) is dict and "elec" in self.form[key]:
+                        cook_dict["elec"] = {
+                            "time": 1,
+                            "unit": 1,
+                            "quantity": 1,
+                            "fuel_amount": 1,
+                        }
 
         return cook_dict
 
@@ -712,11 +723,11 @@ class FormParser:
                 for n in np.arange(n_meal) + 1:
                     # Get the fuel used for the meal
                     fuel = self.form[f"{meal_prefix}/fuels_meal{n}{self.suffix}"].split(
-                        sep="_"
+                        sep="fuel_"
                     )[1]
                     if fuel not in cooking_fuels:
                         raise ValueError(
-                            "This fuel has not been defined in cooking fuels"
+                            f"Fuel {fuel} has not been defined in cooking fuels: {cooking_fuels}"
                         )
 
                     # Get the stove used for the meal

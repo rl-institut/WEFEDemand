@@ -66,6 +66,7 @@ admin_input = {
             "biofuel": {"energy_content": 10, "unit": "l"},
             "kerosene": {"energy_content": 10, "unit": "l"},
             "pellet": {"energy_content": 10, "unit": "kg"},
+            "elec": {"energy_content": 1, "unit": "kWh"},
             "briquette": {"energy_content": 10, "unit": "kg"},
             "dung": {"energy_content": 10, "unit": "kg"},
             "LPG": {"energy_content": 10, "unit": "kg"},
