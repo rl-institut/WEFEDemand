@@ -14,7 +14,7 @@ dat_output = ramp_control.run_opti_mg_dat(input_dict, admin_input)
 fig = make_subplots(rows=5, cols=1, shared_xaxes=True)
 
 i = 1  # Plotly subplot rows start at index 1
-for demand, df in dat_output.groupby(level=0, axis=1):
+for demand, df in dat_output.groupby(level=0):
     fig = plotting.plotly_high_res_df(fig, df=df, subplot_row=i)
     i = i + 1
     print(demand)
