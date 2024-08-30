@@ -10,7 +10,7 @@ from preprocessing import utils
 
 class FormParser:
 
-    def __init__(self, form=None):
+    def __init__(self, form=None, verbose=False) -> None:
         """
         Initialize the FormParser object.
 
@@ -37,6 +37,8 @@ class FormParser:
         - BaseException: If form is None and no form is provided.
 
         """
+        self.verbose = verbose
+
         self.form = form
         self.formtype = None
         self.suffix = None
@@ -94,7 +96,7 @@ class FormParser:
         if self.formtype is None:
             raise ValueError("Form type not known")
 
-    def create_dictionary(self) -> dict:
+    def create_dictionary(self, numerosity) -> dict:
         """
         Creates a dictionary needed for the ramp simulation, from the form data. If the form is from a local authority
         a different dictionary with a summary of the the whole survey is created.
@@ -104,13 +106,14 @@ class FormParser:
 
         :return: A dictionary with the parsed form data.
         """
-        print(f"I am processing form {self.form['_id']} which is a {self.formtype}")
+        if self.verbose:
+            print(f"I am processing form {self.form['_id']} which is a {self.formtype}")
         if self.formtype == "local_aut":
             self.summary = self.create_local_aut_summary()
             return self.summary
         else:
             if self.prefix is not None and self.suffix is not None:
-                self.output_dict["num_users"] = 1
+                self.output_dict["num_users"] = numerosity
                 self.output_dict["months_present"] = self.read_months_of_presence()
                 self.output_dict["working_days"] = self.read_working_days(
                     self.prefix["working_days"]
@@ -191,21 +194,27 @@ class FormParser:
         # Iterate over the different service water types
         for key in prefix.keys():
             # Check if the type is irrigation or livestock
-            if 'irrigation' in key or 'animal_water' in key:
+            if "irrigation" in key or "animal_water" in key:
                 if key == "animal_water":
                     name = "livestock"
                 else:
                     name = key
                 # Get the rainy season for irrigation and livestock
-                rainy_season = self.form[f"{prefix['irrigation']}/dry_season{self.suffix}"]
+                rainy_season = self.form[
+                    f"{prefix['irrigation']}/dry_season{self.suffix}"
+                ]
                 # Check if the service water is used
-                if self.form[f"{prefix[key]}/{key}{self.suffix}"] == "yes":         
+                if self.form[f"{prefix[key]}/{key}{self.suffix}"] == "yes":
                     # Read the service water demand for irrigation and livestock
-                    self.service_water_demand[name] = self.read_service_water(name, prefix[key], rainy_season)
+                    self.service_water_demand[name] = self.read_service_water(
+                        name, prefix[key], rainy_season
+                    )
             else:
                 # Read the service water demand for service water
-                self.service_water_demand[key] = self.read_service_water(key, prefix[key])
-        
+                self.service_water_demand[key] = self.read_service_water(
+                    key, prefix[key]
+                )
+
         return self.service_water_demand
 
     def create_drinking_water_demand(self, drinking_prefix):
@@ -304,7 +313,6 @@ class FormParser:
 
         # Store the results in the class
         self.appliance_demand = app_dict
-        # print(self.appliance_demand)
         # Return the results
         return self.appliance_demand
 
@@ -320,7 +328,20 @@ class FormParser:
         """
 
         # Reading consumption for every machine used
-        month_name = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+        month_name = [
+            "jan",
+            "feb",
+            "mar",
+            "apr",
+            "may",
+            "jun",
+            "jul",
+            "aug",
+            "sep",
+            "oct",
+            "nov",
+            "dec",
+        ]
         for key, data in self.form.items():
             if f"{agro_prefix}/" in key and f"_motor{self.suffix}" in key:
                 mach_name = key.replace(f"{agro_prefix}/", "", 1).replace(
@@ -328,8 +349,12 @@ class FormParser:
                 )  # machinery name
 
                 fuel_AP = self.form[f"{agro_prefix}/{mach_name}_motor{self.suffix}"]
-                product = self.form[f"{agro_prefix}/{mach_name}_prod_onerun{self.suffix}"]
-                hourly_prod = self.form[f"{agro_prefix}/{mach_name}_hour_prod{self.suffix}"]
+                product = self.form[
+                    f"{agro_prefix}/{mach_name}_prod_onerun{self.suffix}"
+                ]
+                hourly_prod = self.form[
+                    f"{agro_prefix}/{mach_name}_hour_prod{self.suffix}"
+                ]
                 efficiency = self.form[f"{agro_prefix}/{mach_name}_eff{self.suffix}"]
                 hour_AP = self.form[f"{agro_prefix}/{mach_name}_hour{self.suffix}"]
                 string_AP = self.form[f"{agro_prefix}/{mach_name}_usage{self.suffix}"]
@@ -342,8 +367,10 @@ class FormParser:
 
                 # Read the crop processed per day for each month
                 for i, month in enumerate(month_name):
-                    months_AP[i+1] = float(
-                        self.form[f"{agro_prefix}/{mach_name}_prod_{month}{self.suffix}"]
+                    months_AP[i + 1] = float(
+                        self.form[
+                            f"{agro_prefix}/{mach_name}_prod_{month}{self.suffix}"
+                        ]
                     )
 
                 # Calculate the crop processed per day for each month
@@ -386,53 +413,69 @@ class FormParser:
     def create_local_aut_summary(self):
 
         # Small farm numerosity
-        number_hh = float(self.form[f"{self.prefix['village_composition']}/HS_HH"])
-        number_low_income = float(
-            self.form[f"{self.prefix['village_composition']}/HS_lower"]
-        )
-        number_medium_income = float(
-            self.form[f"{self.prefix['village_composition']}/HS_middle"]
-        )
-        number_high_income = float(
-            self.form[f"{self.prefix['village_composition']}/HS_upper"]
-        )
+        number_hh = int(self.form[f"{self.prefix['village_composition']}/HS_HH"])
+        try:
+            number_low_income = int(
+                self.form[f"{self.prefix['village_composition']}/HS_lower"]
+            )
+        except:
+            print("WARNING:No number of low income household found, setting to 0")
+            number_low_income = 0
+        try:
+            number_medium_income = int(
+                self.form[f"{self.prefix['village_composition']}/HS_middle"]
+            )
+        except:
+            print("WARNING:No number of medium income household found, setting to 0")
+            number_medium_income = 0
+        try:
+            number_high_income = int(
+                self.form[f"{self.prefix['village_composition']}/HS_upper"]
+            )
+        except:
+            print("WARNING:No number of high income household found, setting to 0")
+            number_high_income = 0
 
         # Large farm numerosity
-        number_large_farm = float(
-            self.form[f"{self.prefix['village_composition']}/number_large_farm"]
-        )
+        try:
+            number_large_farm = int(
+                self.form[f"{self.prefix['village_composition']}/number_large_farm"]
+            )
+        except:
+            print("WARNING:No number of small farm found, setting to 0")
+            number_large_farm = 0
 
         # Service numerosity
-        primary_school = float(
+        primary_school = int(
             self.form[f"{self.prefix['education_composition']}/number_primary"]
         )
-        secondary_school = float(
+        secondary_school = int(
             self.form[f"{self.prefix['education_composition']}/number_secondary"]
         )
-        hospital = float(
+        hospital = int(
             self.form[f"{self.prefix['health_composition']}/number_hospital"]
         )
-        health_centre = float(
-            self.form[f"{self.prefix['health_composition']}/number_hc"]
-        )
-        health_post = float(
-            self.form[f"{self.prefix['health_composition']}/numbert_hp"]
-        )
+        health_centre = int(self.form[f"{self.prefix['health_composition']}/number_hc"])
+        health_post = int(self.form[f"{self.prefix['health_composition']}/numbert_hp"])
 
-        religeus_building = float(
+        religeus_building = int(
             self.form[f"{self.prefix['religion_composition']}/number_worship"]
         )
-        other_service = float(
+        other_service = int(
             self.form[f"{self.prefix['religion_composition']}/number_other_serv"]
         )
-
 
         # Business numberosity
         business_numerosity = {}
         for b in constants.BUSINESS_KEYS:
-            key = b.split('BIZ_')[-1]
-            business_numerosity[key] = int(self.form[f"{self.prefix['economy_composition']}/{b}"])
-        
+            key = b.split("BIZ_")[-1]
+            try:
+                business_numerosity[key] = int(
+                    self.form[f"{self.prefix['economy_composition']}/{b}"]
+                )
+            except:
+                print(f"Warning: {key} not found. Setting 0")
+                business_numerosity[key] = 0
 
         household_numerosity = {
             "low_income_hh": number_low_income,
@@ -452,6 +495,12 @@ class FormParser:
             "religeus_building_numerosity": religeus_building,
             "other_service_numerosity": other_service,
         }
+        self.summary["household_numerosity"] = household_numerosity
+        self.summary["large_scale_farm_numerosity"] = farm_numerosity
+        self.summary["service_numerosity"] = service_numerosity
+        self.summary["business_numerosity"] = business_numerosity
+
+        return self.summary
 
     # reading functions
 
@@ -480,12 +529,12 @@ class FormParser:
                 months.append(months_defaults[month])
         return months
 
-    def read_service_water(self, key, prefix, rainy_season = None):
+    def read_service_water(self, key, prefix, rainy_season=None):
         """
         Reads data related to service water consumption from the form. Handle three type of consumptions data:
             1. Irrigation
             2. Livestock
-            3. Services 
+            3. Services
 
         Args:
             key (str): type of service water consumption, can be 'irrigation',
@@ -520,7 +569,7 @@ class FormParser:
             pump_key = "pump_head"
             demand_time_key = "serv_duration"
             dim_key = "serv_dim"
-        
+
         buck_conversion = None
         monthly_consumes = {}
         if rainy_season is None:
@@ -541,18 +590,24 @@ class FormParser:
             usage_time = utils.extract_time_windows(string_window)
 
             if "buck" in uom:
-                    buck_conversion = float(self.form[f"{prefix}/{dim_key}{self.suffix}"])
-            consumes['rainy'] = utils.convert_perliter(uom, unit, buck_conversion) # If service water from wash is read, all monthly consumes are the same, rainy is set as a convention
+                buck_conversion = float(self.form[f"{prefix}/{dim_key}{self.suffix}"])
+            consumes["rainy"] = utils.convert_perliter(
+                uom, unit, buck_conversion
+            )  # If service water from wash is read, all monthly consumes are the same, rainy is set as a convention
         ## Reading info about irrigation and livestock consumes
         else:
             for season in ["dry", "rainy"]:
                 unit = float(self.form[f"{prefix}/{unit_key}_{season}{self.suffix}"])
                 uom = self.form[f"{prefix}/{uom_key}_{season}{self.suffix}"]
-                string_window = self.form[f"{prefix}/{window_key}_{season}{self.suffix}"]
-            
-                # Converting to liters    
+                string_window = self.form[
+                    f"{prefix}/{window_key}_{season}{self.suffix}"
+                ]
+
+                # Converting to liters
                 if "buck" in uom:
-                    buck_conversion = float(self.form[f"{prefix}/{dim_key}_{season}{self.suffix}"])
+                    buck_conversion = float(
+                        self.form[f"{prefix}/{dim_key}_{season}{self.suffix}"]
+                    )
 
                 consume = utils.convert_perliter(uom, unit, buck_conversion)
                 consumes[season] = consume
@@ -562,18 +617,18 @@ class FormParser:
                     usage_time[key] += temp[key]
 
         ## Setting windows
-        _ , out_windows = utils.convert_usage_windows(usage_time)
+        _, out_windows = utils.convert_usage_windows(usage_time)
         while len(out_windows) < 3:
             out_windows.append(None)
 
         ## Setting monthly consumes
-        
+
         for i, month in enumerate(months_defaults):
             if month in rainy_season:
-                monthly_consumes[i+1] = consumes['rainy']
+                monthly_consumes[i + 1] = consumes["rainy"]
             else:
-                monthly_consumes[i+1] = consumes['dry']
-    
+                monthly_consumes[i + 1] = consumes["dry"]
+
         return {
             "daily_demand": monthly_consumes,
             "usage_windows": out_windows,
@@ -678,9 +733,7 @@ class FormParser:
                     meal_usage_time = utils.extract_time_windows(string_meal_window)
 
                     # Get the time window of the meal
-                    _, meal_time_window = utils.convert_usage_windows(
-                        meal_usage_time
-                    )
+                    _, meal_time_window = utils.convert_usage_windows(meal_usage_time)
 
                     meal_dict[f"meal_{n}"] = {
                         "fuel": fuel,  # fuel used for meals
@@ -693,4 +746,3 @@ class FormParser:
                         "cooking_time": cooking_time,  # <-- this has to be < window_time
                     }
         return meal_dict
-
