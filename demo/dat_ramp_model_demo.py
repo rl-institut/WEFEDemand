@@ -2,7 +2,7 @@ from ramp_model.ramp_control import RampControl
 
 from helpers import plotting
 from plotly.subplots import make_subplots
-from input.complete_input_Aiwa import input_dict
+from input.complete_input_Arusi import input_dict
 from input.admin_input import admin_input
 
 # Create instance of RampControl class, define timeframe to model load profiles
@@ -15,7 +15,7 @@ dat_output = ramp_control.run_opti_mg_dat(input_dict, admin_input)
 agg_demand = dat_output.groupby(level=0, axis=1).sum()
 
 # Output the aggregated demand to a CSV file
-agg_demand.to_csv("agg_demand_Aiwa.csv")
+agg_demand.to_csv("agg_demand_Arusi.csv")
 print("Aggregated demand data has been written to csv")
 
 # Display the first few rows of the aggregated demands
