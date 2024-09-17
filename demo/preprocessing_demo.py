@@ -31,7 +31,7 @@ parser.add_argument(
     "-i",
     "--id",
     type=int,
-    nargs='+',
+    nargs="+",
     default=None,
     help="Id of the form to be processed. If not provided, all forms will be processed.",
 )
@@ -45,8 +45,16 @@ parser.add_argument(
         'service', 'business', large_scale_farm' and 'household' types are supported.",
 )
 
+parser.add_argument(
+    "-v",
+    "--verbose",
+    action="store_true",
+    help="Activate verbose mode",
+)
+
 
 args = parser.parse_args()
+
 
 def get_key_and_token():
     """
@@ -81,15 +89,18 @@ def preprocess_survey(surv_id, token):
         dict: A dictionary containing the survey data
     """
 
-    surveyparser = SurveyParser(surv_id, token)
+    preprocessed_survey = None
+    surveyparser = SurveyParser(surv_id, token, verbose=args.verbose)
     surveyparser.read_survey()
-    preprocessed_survey = surveyparser.process_survey(form_id=args.id, form_type=args.formtype)
+    preprocessed_survey = surveyparser.process_survey(
+        form_id=args.id, form_type=args.formtype
+    )
 
-    return preprocessed_survey
+    return preprocessed_survey, surveyparser
 
 
 if __name__ == "__main__":
-    #run_simulation_on_survey()
+    # run_simulation_on_survey()
     SURVEY_KEY, KOBO_TOKEN = get_key_and_token()
-    output = preprocess_survey(SURVEY_KEY, KOBO_TOKEN)
-    print(output)
+    output, parser = preprocess_survey(SURVEY_KEY, KOBO_TOKEN)
+    print(parser.survey[-1]["H_18a/CH_fuels_H"])
