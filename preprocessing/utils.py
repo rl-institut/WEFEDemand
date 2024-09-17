@@ -6,7 +6,7 @@ import functools
 import warnings
 
 from copy import copy
-from koboextractor import KoboExtractor
+from koboextractor import KoboExtractor  # type: ignore
 
 from preprocessing import constants
 
@@ -232,6 +232,9 @@ def warn_and_skip(func):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            warnings.warn(f"Error processing {func.__name__}: {str(e)}", category=UserWarning)
+            warnings.warn(
+                f"Error processing {func.__name__}: {str(e)}", category=UserWarning
+            )
             return None
+
     return wrapper

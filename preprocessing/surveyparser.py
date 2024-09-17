@@ -85,11 +85,13 @@ class SurveyParser:
                         )
                         if self.verbose:
                             print(f"Processed form {id}.")
-                    except:
+                    except Exception as e:
                         print(
                             f"WARNING: Could not process form {id}"
                             " Skipping this form."
                         )
+                        if self.verbose:
+                            print(f"ERROR: the error was: {str(e)}")
                         continue
             ## Looping over all forms of a specific type
             elif form_type is not None:
@@ -103,11 +105,13 @@ class SurveyParser:
                         )
                         if self.verbose:
                             print(f"Processed form {id}.")
-                    except:
+                    except Exception as e:
                         print(
                             f"WARNING: Could not process form {id}"
                             " Skipping this form."
                         )
+                        if self.verbose:
+                            print(f"ERROR: the error was: {str(e)}")
                         continue
             ## Looping over all forms
             elif form_type is None and form_id is None:
@@ -121,11 +125,13 @@ class SurveyParser:
                                 numerosity=self.numerosity[self.formparser.formtype]
                             )
                         )
-                    except:
+                    except Exception as e:
                         print(
                             f"WARNING: Could not process form {form['_id']}"
                             " Skipping this form."
                         )
+                        if self.verbose:
+                            print(f"ERROR: the error was: {str(e)}")
                         continue
         else:
             raise BaseException("WARNING: No survey data defined.")
