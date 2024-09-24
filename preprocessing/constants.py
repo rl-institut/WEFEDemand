@@ -59,15 +59,51 @@ DENSITY_DICT = {
 FUEL_UNITS_CONVERSION = {"kilogram": 1, "bag": None, "liter": None, "cylinder": None}
 TIME_UNITS_CONVERSION = {"daily": 1, "weekly": 7, "monthly": 30}
 
-BUSINESS_KEYS = ['number_BIZ_shop','number_BIZ_appliances','number_BIZ_pharmacy', 'number_BIZ_butcher',
-         'number_BIZ_barber', 'number_BIZ_salon','number_BIZ_money_transfer', 'number_BIZ_recharing',
-         'number_BIZ_internet', 'number_BIZ_music_shop','number_BIZ_print_shop', 'number_BIZ_bike_mech',
-         'number_BIZ_vehicle_mech', 'number_BIZ_device_repair','number_BIZ_welding_workshop', 
-         'number_BIZ_wood_workshop','number_BIZ_tailoring_workshop', 'number_BIZ_restaurant','number_BIZ_bar',
-         'number_BIZ_hotel','number_BIZ_brewery', 'number_BIZ_mill','number_BIZ_other_mill', 
-         'number_BIZ_slaughterhouse','number_BIZ_juice', 'number_BIZ_cinema','number_BIZ_other']
+# %% Keys for reading Local Autorities info and matching with Survey info collected by SurveyParser
+BUSINESS_KEYS = [
+    "number_BIZ_shop",
+    "number_BIZ_appliances",
+    "number_BIZ_pharmacy",
+    "number_BIZ_butcher",
+    "number_BIZ_barber",
+    "number_BIZ_salon",
+    "number_BIZ_money_transfer",
+    "number_BIZ_recharing",
+    "number_BIZ_internet",
+    "number_BIZ_music_shop",
+    "number_BIZ_print_shop",
+    "number_BIZ_bike_mech",
+    "number_BIZ_vehicle_mech",
+    "number_BIZ_device_repair",
+    "number_BIZ_welding_workshop",
+    "number_BIZ_wood_workshop",
+    "number_BIZ_tailoring_workshop",
+    "number_BIZ_restaurant",
+    "number_BIZ_bar",
+    "number_BIZ_hotel",
+    "number_BIZ_brewery",
+    "number_BIZ_mill",
+    "number_BIZ_other_mill",
+    "number_BIZ_slaughterhouse",
+    "number_BIZ_juice",
+    "number_BIZ_cinema",
+    "number_BIZ_other",
+]
 
-
+FORM_SUBTYPES = {
+    formtype_names[0]: ["low_income_hh", "medium_income_hh", "high_income_hh"],
+    formtype_names[1]: [key.split("number_")[-1] for key in BUSINESS_KEYS],
+    formtype_names[2]: [
+        "primary_school",
+        "secondary_school",
+        "hospital",
+        "health_centre",
+        "health_post",
+        "religeus_building",
+        "other_service",
+    ],
+    formtype_names[3]: "large_scale_farm",
+}
 # %% Key to find the type of form, as defined in kobo CSV configuration file
 formtype_key = "G_0/respondent_"
 
@@ -98,7 +134,11 @@ prefix = {
         "meal": "H_18l",
         "electric": "H_16",
         "drinking_water": "H_8",
-        "service_water": {"livestock": "H_11", "irrigation": "H_10", "services": 'H_8'},
+        "service_water": {
+            "animal_water": "H_11",
+            "irrigation": "H_10",
+            "services": "H_8",
+        },
         "agro_machine": None,
     },
     "service": {
@@ -107,7 +147,7 @@ prefix = {
         "meal": "S_5l",
         "electric": "S_3",
         "drinking_water": "S_4",
-        "service_water": {"services": 'S_4'},
+        "service_water": {"services": "S_4"},
         "agro_machine": None,
     },
     "large_scale_farm": {
@@ -116,7 +156,11 @@ prefix = {
         "meal": "AP_9l",
         "electric": "AP_8",
         "drinking_water": "AP_3",
-        "service_water": {"animal_water": "AP_6", "irrigation": "AP_5", "services": 'AP_3'},
+        "service_water": {
+            "animal_water": "AP_6",
+            "irrigation": "AP_5",
+            "services": "AP_3",
+        },
         "agro_machine": "AP_10",
     },
     "business": {
@@ -125,7 +169,7 @@ prefix = {
         "meal": "B_13_meal",
         "electric": "B_11",
         "drinking_water": "B_7",
-        "service_water": {"services": 'B_7'},
-        "agro_machine": "B_14"
+        "service_water": {"services": "B_7"},
+        "agro_machine": "B_14",
     },
 }

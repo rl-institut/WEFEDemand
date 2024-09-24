@@ -43,6 +43,7 @@ class FormParser:
         self.formtype = None
         self.suffix = None
         self.prefix = None
+        self.subtype_info = None
 
         self.cooking_demand = {}
         self.appliance_demand = {}
@@ -69,6 +70,7 @@ class FormParser:
         """
         self.form = form
         self.check_form_type()
+        self.read_subtype_info()
         self.assign_prefix_suffix()
 
     def check_form_type(self) -> None:
@@ -95,6 +97,41 @@ class FormParser:
         )
         if self.formtype is None:
             raise ValueError("Form type not known")
+
+    def read_subtype_info(self):
+        """
+        Read subtype information from the form data.
+
+        For households, this is the monthly revenue.
+        For services and businesses, this is the type of service or business.
+        """
+        if self.formtype == "household":
+            # Get the monthly revenue
+            rev_t = self._read_form("H_3/time_rev_H", default="daily")
+            rev_q = float(self._read_form("H_3/revenues_H", default=0))
+            # Convert the revenue to a monthly value
+            if "daily" in rev_t:
+                self.subtype_info = rev_q * 30
+            elif "weekly" in rev_t:
+                self.subtype_info = rev_q * 4
+            else:
+                self.subtype_info = rev_q
+
+        elif self.formtype == "service" or self.formtype == "business":
+            # Get the type of service or business
+            for key in self.form.keys():
+                if "school" in key or "health_type" in key or "other_bus_S" in key:
+                    self.subtype_info = self.form[key]
+                elif (
+                    "type_of_bus" in key
+                    and "school" not in key
+                    and "heath_type" not in key
+                ):
+                    self.subtype_info = self.form[key]
+            if self.subtype_info is None:
+                print(f"WARNING: subtype info not found for form {self.form['_id']}")
+        else:
+            self.subtype_info = None
 
     def create_dictionary(self, numerosity) -> dict:
         """
@@ -200,9 +237,9 @@ class FormParser:
                 else:
                     name = key
                 # Get the rainy season for irrigation and livestock
-                rainy_season = self.form[
-                    f"{prefix['irrigation']}/dry_season{self.suffix}"
-                ]
+                rainy_season = self._read_form(
+                    f"{prefix['irrigation']}/dry_season{self.suffix}", default=""
+                )
                 # Check if the service water is used
                 if self.form[f"{prefix[key]}/{key}{self.suffix}"] == "yes":
                     # Read the service water demand for irrigation and livestock
@@ -411,116 +448,118 @@ class FormParser:
         return self.agro_machine_demand
 
     def create_local_aut_summary(self):
+        """
+        Extract the numerosity of local authorities, households, services, businesses and large scale farms.
+        """
+        household_numerosity = {}
+        service_numerosity = {}
+        business_numerosity = {}
 
-        # Small farm numerosity
-        number_hh = int(self.form[f"{self.prefix['village_composition']}/HS_HH"])
-        try:
-            number_low_income = int(
-                self.form[f"{self.prefix['village_composition']}/HS_lower"]
+        # Household numerosity
+        subtypes = constants.FORM_SUBTYPES["household"]
+        household_numerosity[subtypes[0]] = int(
+            self._read_form(f"{self.prefix['village_composition']}/HS_lower", default=0)
+        )
+        household_numerosity[subtypes[1]] = int(
+            self._read_form(
+                f"{self.prefix['village_composition']}/HS_middle", default=0
             )
-        except:
-            print("WARNING:No number of low income household found, setting to 0")
-            number_low_income = 0
-        try:
-            number_medium_income = int(
-                self.form[f"{self.prefix['village_composition']}/HS_middle"]
-            )
-        except:
-            print("WARNING:No number of medium income household found, setting to 0")
-            number_medium_income = 0
-        try:
-            number_high_income = int(
-                self.form[f"{self.prefix['village_composition']}/HS_upper"]
-            )
-        except:
-            print("WARNING:No number of high income household found, setting to 0")
-            number_high_income = 0
+        )
+        household_numerosity[subtypes[2]] = int(
+            self._read_form(f"{self.prefix['village_composition']}/HS_upper", default=0)
+        )
+        household_numerosity["total_hh"] = int(
+            self._read_form(f"{self.prefix['village_composition']}/HS_HH", default=0)
+        )
 
         # Large farm numerosity
-        try:
-            number_large_farm = int(
-                self.form[f"{self.prefix['village_composition']}/number_large_farm"]
+        subtypes = constants.FORM_SUBTYPES["large_scale_farm"]
+        number_large_farm_numerosity = {
+            subtypes: int(
+                self._read_form(
+                    f"{self.prefix['village_composition']}/number_large_farm", default=0
+                )
             )
-        except:
-            print("WARNING:No number of small farm found, setting to 0")
-            number_large_farm = 0
+        }
 
         # Service numerosity
-        primary_school = int(
-            self.form[f"{self.prefix['education_composition']}/number_primary"]
+        subtypes = constants.FORM_SUBTYPES["service"]
+        service_numerosity[subtypes[0]] = int(
+            self._read_form(
+                f"{self.prefix['education_composition']}/number_primary", default=0
+            )
         )
-        secondary_school = int(
-            self.form[f"{self.prefix['education_composition']}/number_secondary"]
+        service_numerosity[subtypes[1]] = int(
+            self._read_form(
+                f"{self.prefix['education_composition']}/number_secondary", default=0
+            )
         )
-        hospital = int(
-            self.form[f"{self.prefix['health_composition']}/number_hospital"]
+        service_numerosity[subtypes[2]] = int(
+            self._read_form(
+                f"{self.prefix['health_composition']}/number_hospital", default=0
+            )
         )
-        health_centre = int(self.form[f"{self.prefix['health_composition']}/number_hc"])
-        health_post = int(self.form[f"{self.prefix['health_composition']}/numbert_hp"])
-
-        religeus_building = int(
-            self.form[f"{self.prefix['religion_composition']}/number_worship"]
+        service_numerosity[subtypes[3]] = int(
+            self._read_form(f"{self.prefix['health_composition']}/number_hc", default=0)
         )
-        other_service = int(
-            self.form[f"{self.prefix['religion_composition']}/number_other_serv"]
+        service_numerosity[subtypes[4]] = int(
+            self._read_form(
+                f"{self.prefix['health_composition']}/numbert_hp", default=0
+            )
+        )
+        service_numerosity[subtypes[5]] = int(
+            self._read_form(
+                f"{self.prefix['religion_composition']}/number_worship", default=0
+            )
+        )
+        service_numerosity[subtypes[6]] = int(
+            self._read_form(
+                f"{self.prefix['religion_composition']}/number_other_serv", default=0
+            )
         )
 
         # Business numberosity
         business_numerosity = {}
         for b in constants.BUSINESS_KEYS:
-            key = b.split("BIZ_")[-1]
-            try:
-                business_numerosity[key] = int(
-                    self.form[f"{self.prefix['economy_composition']}/{b}"]
-                )
-            except:
-                print(
-                    f"WARNING: Key {key} not found while compiling local autority summary. Setting it to 0"
-                )
-                business_numerosity[key] = 0
+            key = b.split("number_")[-1]
+            business_numerosity[key] = int(
+                self._read_form(f"{self.prefix['economy_composition']}/{b}", default=0)
+            )
 
-        household_numerosity = {
-            "low_income_hh": number_low_income,
-            "medium_income_hh": number_medium_income,
-            "high_income_hh": number_high_income,
-            "total_hh": number_hh,
-        }
-
-        farm_numerosity = {"large_farm_numerosity": number_large_farm}
-
-        service_numerosity = {
-            "school_numerosity": primary_school,
-            "secondary_school_numerosity": secondary_school,
-            "hospital_numerosity": hospital,
-            "health_centre_numerosity": health_centre,
-            "health_post_numerosity": health_post,
-            "religeus_building_numerosity": religeus_building,
-            "other_service_numerosity": other_service,
-        }
-        self.summary["household_numerosity"] = household_numerosity
-        self.summary["large_scale_farm_numerosity"] = farm_numerosity
-        self.summary["service_numerosity"] = service_numerosity
-        self.summary["business_numerosity"] = business_numerosity
+        # Update the summary
+        self.summary["household"] = household_numerosity
+        self.summary["large_scale_farm"] = number_large_farm_numerosity
+        self.summary["service"] = service_numerosity
+        self.summary["business"] = business_numerosity
 
         return self.summary
 
     # reading functions
-
     @utils.warn_and_skip
-    def _read_form(self, key):
+    def _read_form(self, key, default=None):
         return self.form[key]
 
-    def read_working_days(self, prefix):
+    def read_working_days(self, prefix: str):
+        """
+        Reads the working days from the form data.
+
+        Args:
+            prefix (str): The prefix of the form data for the working days.
+
+        Returns:
+            List[int]: A list of integers representing the working days.
+        """
         if prefix is not None:
+            # Get the working days string from the form data
             string_day = self.form[f"{prefix}/working_day{self.suffix}"]
             working = []
 
             for day in working_day:
                 if day in string_day:
                     working.append(working_day[day])
-
             return working
         else:
+            # Return all days if no prefix is provided
             return list(range(7))
 
     def read_months_of_presence(self):
@@ -577,8 +616,12 @@ class FormParser:
         if rainy_season is None:
             rainy_season = list(constants.months_defaults.keys())
 
-        pumping_head = float(self.form[f"{prefix}/{pump_key}{self.suffix}"])
-        demand_time = float(self.form[f"{prefix}/{demand_time_key}{self.suffix}"])
+        pumping_head = float(
+            self._read_form(f"{prefix}/{pump_key}{self.suffix}", default=0.0)
+        )
+        demand_time = float(
+            self._read_form(f"{prefix}/{demand_time_key}{self.suffix}", default=1.0)
+        )
 
         # Computing consumes and usage times
         consumes = {}
@@ -599,16 +642,24 @@ class FormParser:
         ## Reading info about irrigation and livestock consumes
         else:
             for season in ["dry", "rainy"]:
-                unit = float(self.form[f"{prefix}/{unit_key}_{season}{self.suffix}"])
-                uom = self.form[f"{prefix}/{uom_key}_{season}{self.suffix}"]
-                string_window = self.form[
-                    f"{prefix}/{window_key}_{season}{self.suffix}"
-                ]
+                unit = float(
+                    self._read_form(
+                        f"{prefix}/{unit_key}_{season}{self.suffix}", default=0.0
+                    )
+                )
+                uom = self._read_form(
+                    f"{prefix}/{uom_key}_{season}{self.suffix}", default="liters"
+                )
+                string_window = self._read_form(
+                    f"{prefix}/{window_key}_{season}{self.suffix}", default="0-7"
+                )
 
                 # Converting to liters
                 if "buck" in uom:
                     buck_conversion = float(
-                        self.form[f"{prefix}/{dim_key}_{season}{self.suffix}"]
+                        self._read_form(
+                            f"{prefix}/{dim_key}_{season}{self.suffix}", default=0.0
+                        )
                     )
 
                 consume = utils.convert_perliter(uom, unit, buck_conversion)
