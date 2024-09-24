@@ -103,4 +103,5 @@ if __name__ == "__main__":
     # run_simulation_on_survey()
     SURVEY_KEY, KOBO_TOKEN = get_key_and_token()
     output, parser = preprocess_survey(SURVEY_KEY, KOBO_TOKEN)
-    print(parser.survey[-1]["H_18a/CH_fuels_H"])
+
+    print(output)

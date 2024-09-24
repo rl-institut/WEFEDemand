@@ -193,7 +193,7 @@ def convert_usage_windows(input_dict):
     return windows, usage_windows
 
 
-# general function
+# %% general function
 def load_kobo_data(form_id, api_token):
     """
     Loads data from Kobo Toolbox using the given form id and api token.
@@ -228,13 +228,14 @@ def load_kobo_data(form_id, api_token):
 
 def warn_and_skip(func):
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, default=None, **kwargs):
         try:
             return func(*args, **kwargs)
         except Exception as e:
             warnings.warn(
-                f"Error processing {func.__name__}: {str(e)}", category=UserWarning
+                f"Error processing {func.__name__}: {str(e)}, returning set default {default}",
+                category=UserWarning,
             )
-            return None
+            return default
 
     return wrapper

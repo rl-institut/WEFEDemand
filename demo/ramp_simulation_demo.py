@@ -31,7 +31,7 @@ parser.add_argument(
     "-i",
     "--id",
     type=int,
-    nargs='+',
+    nargs="+",
     default=None,
     help="Id of the form to be processed. If not provided, all forms will be processed.",
 )
@@ -51,6 +51,13 @@ parser.add_argument(
     type=str,
     default="output",
     help="Starting date of the time window of the simulation",
+)
+
+parser.add_argument(
+    "-v",
+    "--verbose",
+    action="store_true",
+    help="Activate verbose mode",
 )
 
 args = parser.parse_args()
@@ -130,11 +137,14 @@ def preprocess_survey(surv_id, token):
         dict: A dictionary containing the survey data
     """
 
-    surveyparser = SurveyParser(surv_id, token)
+    surveyparser = SurveyParser(surv_id, token, verbose=args.verbose)
     surveyparser.read_survey()
-    preprocessed_survey = surveyparser.process_survey(form_id=args.id, form_type=args.formtype)
+    preprocessed_survey = surveyparser.process_survey(
+        form_id=args.id, form_type=args.formtype
+    )
 
     return preprocessed_survey
+
 
 def run_simulation_on_survey(data):
     """
@@ -148,10 +158,9 @@ def run_simulation_on_survey(data):
     ramp_control = RampControl(days, start)
 
     # %% Run simulation of the demand
-    dat_output_mean, dat_output_max = ramp_control.run_opti_mg_dat(
-        data, admin_input
-    )
+    dat_output_mean, dat_output_max = ramp_control.run_opti_mg_dat(data, admin_input)
 
+    print(dat_output_mean)
     # %% Dump raw output on CSV
     create_directory_if_not_exists(args.output)
     create_directory_if_not_exists(f"{args.output}/{SURVEY_KEY}")
@@ -160,9 +169,9 @@ def run_simulation_on_survey(data):
     dump_aggregated_output(dat_output_mean, survey=SURVEY_KEY, type="mean")
     dump_aggregated_output(dat_output_max, survey=SURVEY_KEY, type="max")
 
-if __name__ == "__main__":
-    #run_simulation_on_survey()
-    SURVEY_KEY, KOBO_TOKEN = get_key_and_token()
-    preprocessed_survey =preprocess_survey(SURVEY_KEY, KOBO_TOKEN)
-    run_simulation_on_survey(preprocessed_survey)
 
+if __name__ == "__main__":
+    # run_simulation_on_survey()
+    SURVEY_KEY, KOBO_TOKEN = get_key_and_token()
+    preprocessed_survey = preprocess_survey(SURVEY_KEY, KOBO_TOKEN)
+    run_simulation_on_survey(preprocessed_survey)
