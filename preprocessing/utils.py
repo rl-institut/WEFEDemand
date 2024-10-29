@@ -218,9 +218,7 @@ def load_kobo_data(form_id, api_token):
             pandas DataFrame of the survey results.
     """
     # initialize the kobo extractor
-    kobo = KoboExtractor(
-        api_token, "https://kobo.humanitarianresponse.info/api/v2", debug=True
-    )
+    kobo = KoboExtractor(api_token, constants.API_URL, debug=True)
 
     # access data submitted to a specific form using the form id
     data = kobo.get_data(

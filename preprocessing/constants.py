@@ -1,3 +1,7 @@
+# KOBO API url
+
+API_URL = "https://kobo.humanitarianresponse.info/api/v2"
+
 # %% Name of different type of form
 formtype_names = ["household", "business", "service", "large_scale_farm", "local_aut"]
 
