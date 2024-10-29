@@ -34,6 +34,6 @@ python ramp_simulation_demo.py -i ID_NUMBER_1 ID_NUMBER_2
 
 This will create a series of csv files in the directory called output/SURVEY_KEY.
 
-There will be a csv file for each demand (water, agro, cookign, elec). The csv files will contains a series of column one for each forms. The simulation output both max and mean hourly values in different csv files except for water demand which is just the sum of liters in an hour.
+There will be a csv file for each demand (water, agro, cooking, elec). The csv files will contains a series of column, one for each forms. The simulation outputs both max and mean hourly values in different csv files except for water demand which is just the sum of liters over an hour.
 
 The code creates also tww csv file with the aggregated demand of all the forms, both max and mean hourly demand.
