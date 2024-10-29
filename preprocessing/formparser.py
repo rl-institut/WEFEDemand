@@ -23,8 +23,9 @@ class FormParser:
         Attributes:
         - form (dict or None): The form data to be parsed.
         - formtype (None): The type of the form.
-        - suffix (None): The suffix used in the form.
-        - prefix (None): The prefix used in the form.
+        - suffix (dict): The suffix used in the form. This dictionary is set when the form initialized. The information are retrieved from constants.
+        - prefix (dict): The prefix used in the form. This dictionary is set when the form initialized. The information are retrieved from constants.
+        - subtype_info (dict): The subtype information of the form. This is needed for the computation of numerosity of users by SurveyParser. This dictionary is set when the form initialized. The information are retrieved from constants.
         - cooking_demand (dict): A dictionary to store cooking demand data.
         - appliance_demand (dict): A dictionary to store appliance demand data.
         - drinking_water_demand (dict): A dictionary to store drinking water demand data.
@@ -32,6 +33,7 @@ class FormParser:
         - agro_machine_demand (dict): A dictionary to store agro machine demand data.
         - months_prefix (str): The prefix used for months in the form.
         - output_dict (dict): A dictionary to store the parsed form data.
+        - TIME_PROBLEM (bool): A flag to indicate whether there is a time problem in the form comparing time windows and usage time.
 
         Raises:
         - BaseException: If form is None and no form is provided.
