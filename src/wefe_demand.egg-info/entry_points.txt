@@ -1,0 +1,2 @@
+[console_scripts]
+cli-name = mypkg.mymodule:some_func

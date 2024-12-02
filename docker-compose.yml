@@ -1,0 +1,61 @@
+services:
+  redis:
+    image: redis
+    container_name: 'demand-redis'
+    restart: always
+    expose:
+    - 6379
+    networks:
+      - demand_network
+  worker_default:
+    container_name: 'demand-celery-worker'
+    build: .
+    restart: always
+    command: celery -A celery_worker.worker worker --loglevel=INFO --pool prefork  --concurrency=16 --queues=default_queue
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - FLOWER_PORT=5555
+      - PW=/run/secrets/pw
+    depends_on:
+      - redis
+    secrets:
+      - pw
+    networks:
+      - demand_network
+  flower:
+    container_name: 'demand-flower'
+    build: .
+    restart: always
+    command: celery -A celery_worker.worker flower --port=5555
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - FLOWER_PORT=5555
+      - PW=/run/secrets/pw
+      - DB_HOST=mysql
+    expose:
+      - 5555
+    depends_on:
+      - redis
+      - worker_default
+    secrets:
+      - pw
+    networks:
+      - demand_network
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: demand_ngx
+    restart: always
+    ports:
+      - "5555:80"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    networks:
+      - demand_network
+secrets:
+  pw:
+    file: ./secrets/secret.txt
+
+networks:
+  demand_network:

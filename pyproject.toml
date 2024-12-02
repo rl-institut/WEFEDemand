@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wefe_demand"
+authors = [
+  { name="Giovanni", email="a@b.com" },
+  { name="Pierre-François Duc", email="pierre-francois.duc@rl-institut.de" },
+]
+description = "An interface between KOBO toolbox surveys and RAMP to generate demand timeseries for WEFE simulations"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dynamic = ["version", "dependencies"] #, "readme"]
+
+[tool.setuptools.dynamic]
+#readme = {file = ["README.rst"]}
+version = {attr = "wefe_demand.version"}
+dependencies = {file = ["requirements/build_requirements.txt"]}
+
+[project.scripts]
+cli-name = "mypkg.mymodule:some_func"
+
+[project.urls]
+Homepage = "https://github.com/rl-institut/WEFEDemand"
+Issues = "https://github.com/rl-institut/WEFEDemand/issues"

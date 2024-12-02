@@ -1,4 +1,4 @@
-Preprocessing code for extracting info from forms of a Kobo survey. 
+Preprocessing code for extracting info from forms of a Kobo survey.
 The code is based on two main classes:
     - FormParser
     - SurveyParser
