@@ -1,0 +1,26 @@
+services:
+  preprocessing:
+    build:
+      context: .
+    env_file:
+      - .env
+    image: wefe-demand
+    container_name: preprocessing_demo
+    command: ["python", "demo/preprocessing_demo.py", "-i", "${ID_NUMBER_1}", "${ID_NUMBER_2}"]
+    volumes:
+      - ./output:/app/output
+    environment:
+      OUTPUT_DIR: "/demo/output"
+
+  ramp_simulation:
+    build:
+      context: .
+    env_file:
+      - .env
+    image: wefe-demand
+    container_name: ramp_simulation_demo
+    command: ["python", "demo/ramp_simulation_demo.py", "-i", "${ID_NUMBER_1}", "${ID_NUMBER_2}"]
+    volumes:
+      - ./output:/demo/output
+    environment:
+      OUTPUT_DIR: "/demo/output"
