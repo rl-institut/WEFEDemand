@@ -1,0 +1,19 @@
+services:
+  wefe-demand:
+    build:
+      context: .
+    container_name: wefe-demand
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - demand_data:/app/output
+    networks:
+      - wefegui_optimg_network
+
+volumes:
+  demand_data:
+
+networks:
+  wefegui_optimg_network:
+    external: true
