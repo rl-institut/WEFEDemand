@@ -1,7 +1,6 @@
 # WEFEDemand
 
-WEFEDemand is an assessment tool designed to model and analyze the interconnected demands of Water, Energy, Food, and 
-the Environment (WEFE), particularly in off-grid and decentralized contexts. This tool facilitates a comprehensive 
+WEFEDemand is an assessment tool designed to model and analyze the interconnected demands of integrated Water-Energy-Food-Environment Systems(iWEFEs), particularly in off-grid and decentralized contexts. This tool facilitates a comprehensive 
 understanding of how these essential systems interact and affect each other with a particular focus on developing 
 sustainable, resilient, and efficient systems. By simulating the demand dynamics of water, energy, food, and environmental
 resources, the tool enables stakeholders, including researchers, policymakers, and local authorities, to make informed 
