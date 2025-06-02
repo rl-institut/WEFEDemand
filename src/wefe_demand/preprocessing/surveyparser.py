@@ -115,7 +115,7 @@ class SurveyParser:
             self.summary = copy(self.formparser.create_dictionary(1))
         else:
             warnings.warn(
-                "WARNING: No Local Authority form defined. Numerisity set to 1 for all forms."
+                "WARNING: No Local Authority form defined. Numerosity set to 1 for all forms."
             )
 
         self._get_numerosity_from_localaut_info()

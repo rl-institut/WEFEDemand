@@ -242,7 +242,7 @@ def warn_and_skip(func):
             return func(*args, **kwargs)
         except Exception as e:
             print(
-                f"WARNING: couldn't found {str(e)} information in form {formtype}, returning set default {default}"
+                f"WARNING: couldn't find {str(e)} information in form {formtype}, returning set default {default}"
             )
             return default
 
