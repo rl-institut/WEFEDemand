@@ -4,10 +4,10 @@ import sys
 import argparse
 import pandas as pd
 
-from input.admin_input import admin_input
-from preprocessing.surveyparser import SurveyParser
-from preprocessing.surveyparser import SurveyParser
-from ramp_model.ramp_control import RampControl
+from wefe_demand.input.admin_input import admin_input
+from wefe_demand.preprocessing.surveyparser import SurveyParser
+from wefe_demand.preprocessing.surveyparser import SurveyParser
+from wefe_demand.ramp_model.ramp_control import RampControl
 
 
 env_SURVEY_KEY = "SURVEY_KEY"

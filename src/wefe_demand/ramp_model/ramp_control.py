@@ -4,7 +4,7 @@ import numpy as np
 import copy
 from tqdm import tqdm  # type: ignore
 
-from helpers.exceptions import MissingInput
+from wefe_demand.helpers.exceptions import MissingInput
 
 
 class RampControl:
