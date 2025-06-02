@@ -1,26 +1,19 @@
 services:
-  preprocessing:
+  wefe-demand:
     build:
       context: .
+    container_name: wefe-demand
+    restart: always
     env_file:
       - .env
-    image: wefe-demand
-    container_name: preprocessing_demo
-    command: ["python", "demo/preprocessing_demo.py", "-i", "${ID_NUMBER_1}", "${ID_NUMBER_2}"]
     volumes:
-      - ./output:/app/output
-    environment:
-      OUTPUT_DIR: "/demo/output"
+      - demand_data:/app/output
+    networks:
+      - wefegui_optimg_network
 
-  ramp_simulation:
-    build:
-      context: .
-    env_file:
-      - .env
-    image: wefe-demand
-    container_name: ramp_simulation_demo
-    command: ["python", "demo/ramp_simulation_demo.py", "-i", "${ID_NUMBER_1}", "${ID_NUMBER_2}"]
-    volumes:
-      - ./output:/demo/output
-    environment:
-      OUTPUT_DIR: "/demo/output"
+volumes:
+  demand_data:
+
+networks:
+  wefegui_optimg_network:
+    external: true

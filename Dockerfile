@@ -11,3 +11,6 @@ RUN pip install --no-cache-dir -r requirements/default.txt
 
 # Set the PYTHONPATH environment variable to include the src directory
 ENV PYTHONPATH=/app/src/wefe_demand:$PYTHONPATH
+
+# Run the flask app for the API endpoint
+CMD ["python", "demo/app.py"]
