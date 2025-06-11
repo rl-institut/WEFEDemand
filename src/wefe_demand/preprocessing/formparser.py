@@ -2,10 +2,10 @@ import numpy as np
 from copy import copy
 
 
-from preprocessing import constants
-from preprocessing.constants import prefix, suffix
-from preprocessing.constants import months_defaults, working_day
-from preprocessing import utils
+from wefe_demand.preprocessing import constants
+from wefe_demand.preprocessing.constants import prefix, suffix
+from wefe_demand.preprocessing.constants import months_defaults, working_day
+from wefe_demand.preprocessing import utils
 
 
 class FormParser:
