@@ -1,12 +1,20 @@
 from flask import Flask, request, jsonify
 import subprocess
+import os
 
 app = Flask(__name__)
 
 def run_script(script, args):
     try:
+        args_list = []
+        for k, v in args.items():
+            if isinstance(v, list):
+                args_list.append(f"--{k}")
+                args_list.extend(str(x) for x in v)
+            else:
+                args_list.append(f"--{k}={v}")
         result = subprocess.run(
-            ["python", f"{script}", *[f"--{k}={v}" for k, v in args.items()]],
+            ["python", script, *args_list],
             capture_output=True,
             text=True
         )
@@ -16,16 +24,21 @@ def run_script(script, args):
 
 @app.route("/preprocessing", methods=["POST"])
 def run_preprocessing():
-    data = request.json
+    data = request.get_json()
     script = "preprocessing_demo.py"
-    args = data.get("args", {})
-    return run_script(script, args)
+    args = data.get("args")
+    survey_id = data.get("survey_id")
+    os.environ["SURVEY_KEY"] = survey_id
+    res = run_script(script, args)
+    return res
 
 @app.route("/ramp-simulation", methods=["POST"])
 def run_simulation():
-    data = request.json
+    data = request.get_json()
     script = "ramp_simulation_demo.py"
     args = data.get("args", {})
+    survey_id = data.get("survey_id", {})
+    os.environ["SURVEY_KEY"] = survey_id
     return run_script(script, args)
 
 
