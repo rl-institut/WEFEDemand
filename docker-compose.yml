@@ -9,11 +9,13 @@ services:
     volumes:
       - demand_data:/app/output
     networks:
-      - wefegui_optimg_network
+      - optimg_network
+    ports:
+      - "5000:5000"
 
 volumes:
   demand_data:
 
 networks:
-  wefegui_optimg_network:
+  optimg_network:
     external: true
