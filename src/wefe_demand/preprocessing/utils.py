@@ -8,7 +8,7 @@ import warnings
 from copy import copy
 from koboextractor import KoboExtractor  # type: ignore
 
-from preprocessing import constants
+from wefe_demand.preprocessing import constants
 
 
 # %% Conversion function used in formparser

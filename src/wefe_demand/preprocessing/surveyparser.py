@@ -4,9 +4,9 @@ import numpy as np
 
 from copy import copy
 
-from preprocessing.formparser import FormParser
-from preprocessing.utils import load_kobo_data, warn_and_skip
-from preprocessing import constants
+from wefe_demand.preprocessing.formparser import FormParser
+from wefe_demand.preprocessing.utils import load_kobo_data, warn_and_skip
+from wefe_demand.preprocessing import constants
 
 
 class SurveyParser:

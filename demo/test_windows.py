@@ -1,5 +1,5 @@
 # %%
-from preprocessing.kobo_api_access import load_kobo_data
+from wefe_demand.preprocessingkobo_api_access import load_kobo_data
 from input import defaults
 from copy import copy
 
