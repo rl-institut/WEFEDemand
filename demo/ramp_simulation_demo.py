@@ -8,7 +8,9 @@ from wefe_demand.input.admin_input import admin_input
 from wefe_demand.preprocessing.surveyparser import SurveyParser
 from wefe_demand.preprocessing.surveyparser import SurveyParser
 from wefe_demand.ramp_model.ramp_control import RampControl
+from dotenv import load_dotenv
 
+load_dotenv()
 
 env_SURVEY_KEY = "SURVEY_KEY"
 env_KOBO_TOKEN = "KOBO_TOKEN"
