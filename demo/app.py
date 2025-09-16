@@ -1,27 +1,29 @@
 from flask import Flask, request, jsonify
 import os
+from fastapi import FastAPI, Request
+import uvicorn
+import logging
 
 from ramp_simulation_demo import main as run_ramp_simulation
 
-app = Flask(__name__)
+app = FastAPI()
 
-@app.route('/')
-def index():
-    return jsonify({"message": "Welcome to the WEFEDemand app, please use the /ramp-simulation endpoint to perform simulations"})
+@app.get('/')
+async def index():
+    logging.info("Startup started...")
+    return {"message": "Welcome to the WEFEDemand app, please use the /ramp-simulation endpoint to perform simulations"}
 
-@app.route("/ramp-simulation", methods=["POST"])
-def run_simulation():
-    data = request.get_json()
+@app.post("/ramp-simulation")
+async def run_simulation(request: Request):
+    data = await request.json()
     args = data.get("args", {})
-    survey_id = data.get("survey_id", {})
+    survey_id = data.get("survey_id", "")
     os.environ["SURVEY_KEY"] = survey_id
     try:
         agg_mean = run_ramp_simulation(args)
-        return jsonify({"data": agg_mean.to_dict(orient="list")})
+        return {"data": agg_mean.to_dict(orient="list")}
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
+        return {"error": str(e)}
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    uvicorn.run("app:app", host="127.0.0.1", port=5000, reload=True)

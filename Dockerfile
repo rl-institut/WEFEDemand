@@ -12,5 +12,8 @@ RUN pip install --no-cache-dir -r requirements/default.txt
 # Set the PYTHONPATH environment variable to include the src directory
 ENV PYTHONPATH=/app/src/wefe_demand:$PYTHONPATH
 
-# Run the flask app for the API endpoint
-CMD ["python", "demo/app.py"]
+# Expose port
+EXPOSE 5000
+
+# Run with Gunicorn + Uvicorn
+CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "app:app", "--bind", "0.0.0.0:5000", "--workers", "4", "--threads", "2"]
