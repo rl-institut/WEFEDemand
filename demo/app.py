@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
-import subprocess
 import os
+
+from ramp_simulation_demo import main as run_ramp_simulation
 
 app = Flask(__name__)
 
@@ -36,11 +37,14 @@ def run_preprocessing():
 @app.route("/ramp-simulation", methods=["POST"])
 def run_simulation():
     data = request.get_json()
-    script = "demo/ramp_simulation_demo.py"
     args = data.get("args", {})
     survey_id = data.get("survey_id", {})
     os.environ["SURVEY_KEY"] = survey_id
-    return run_script(script, args)
+    try:
+        agg_mean = run_ramp_simulation(args)
+        return jsonify({"data": agg_mean.to_dict(orient="list")})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 

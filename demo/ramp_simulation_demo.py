@@ -80,8 +80,6 @@ parser.add_argument(
     help="Print the output of one or multiple forms given the form ids",
 )
 
-args = parser.parse_args()
-
 
 def create_directory_if_not_exists(directory_path):
     if not os.path.exists(directory_path):
@@ -109,7 +107,7 @@ def get_key_and_token():
     return os.getenv(env_SURVEY_KEY), os.getenv(env_KOBO_TOKEN)
 
 
-def dump_simulation_output(dat_output, survey, type="mean"):
+def dump_simulation_output(dat_output, survey, dir, type="mean"):
     """
     Dump the demand profiles from the simulation output for each demand type to separate CSV files
 
@@ -120,14 +118,14 @@ def dump_simulation_output(dat_output, survey, type="mean"):
     # Loop over each demand type (e.g. cooking, drinking water, etc.)
     for demand, df in dat_output.groupby(level=0, axis=1):
         # Create the filename for the output file
-        csv_file_path = f"{args.output}/{survey}/demand_{demand}_{type}.csv"
+        csv_file_path = f"{dir}/{survey}/demand_{demand}_{type}.csv"
         # Save the demand profile to a CSV file
-        df.to_csv(csv_file_path, index=True, float_format="%.18f", decimal=",")
+        df.to_csv(csv_file_path, index=True)
         # Print a message to the user indicating that the file has been written
         print(f"Dumped {type} demand in CSV file {csv_file_path} for {demand} demand")
 
 
-def dump_aggregated_output(dat_output, survey, type="mean"):
+def dump_aggregated_output(dat_output, survey, dir, type="mean"):
     """
     Dump aggregated demand (summed over all households) for each demand type to a CSV file
 
@@ -139,13 +137,13 @@ def dump_aggregated_output(dat_output, survey, type="mean"):
     dat_output = dat_output.groupby(level=0, axis=1).sum()
 
     # Create the filename for the output file
-    csv_file_path = f"{args.output}/{survey}/aggregated_demands_{type}.csv"
+    csv_file_path = f"{dir}/{survey}/aggregated_demands_{type}.csv"
 
     # Save the aggregated demand to a CSV file
-    dat_output.to_csv(csv_file_path, index=True, float_format="%.18f", decimal=",")
+    dat_output.to_csv(csv_file_path, index=True)
 
 
-def preprocess_survey(surv_id, token):
+def preprocess_survey(surv_id, token, args):
     """
     Preprocess survey data for the RAMP model
 
@@ -157,24 +155,25 @@ def preprocess_survey(surv_id, token):
         dict: A dictionary containing the survey data
     """
 
-    surveyparser = SurveyParser(surv_id, token, verbose=args.verbose)
+    surveyparser = SurveyParser(surv_id, token, verbose=args.get("verbose"))
     surveyparser.read_survey()
     preprocessed_survey = surveyparser.process_survey(
-        form_id=args.id, form_type=args.formtype
+        form_id=args.get("id"), form_type=args.get("formtype")
     )
 
     return preprocessed_survey
 
 
-def run_simulation_on_survey(data):
+def run_simulation_on_survey(data, args):
     """
     Run the simulation of the demand using the RAMP model and dump the output to CSV files
 
     This function is the main entry point for the demo script
     """
+    SURVEY_KEY = os.getenv("SURVEY_KEY")
 
     # %% Create instance of RampControl class, define timeframe to model load profiles
-    days, start = args.days, args.date
+    days, start = args.get("days"), args.get("date")
     ramp_control = RampControl(days, start)
 
     # %% Run simulation of the demand
@@ -182,28 +181,44 @@ def run_simulation_on_survey(data):
 
     print(dat_output_mean)
     # %% Dump raw output on CSV
-    create_directory_if_not_exists(args.output)
-    create_directory_if_not_exists(f"{args.output}/{SURVEY_KEY}")
-    dump_simulation_output(dat_output_mean, survey=SURVEY_KEY, type="mean")
-    dump_simulation_output(dat_output_max, survey=SURVEY_KEY, type="max")
-    dump_aggregated_output(dat_output_mean, survey=SURVEY_KEY, type="mean")
-    dump_aggregated_output(dat_output_max, survey=SURVEY_KEY, type="max")
+    dir = args.get("output")
+    create_directory_if_not_exists(dir)
+    create_directory_if_not_exists(f"{dir}/{SURVEY_KEY}")
+    dump_simulation_output(dat_output_mean, survey=SURVEY_KEY, dir=dir, type="mean")
+    dump_simulation_output(dat_output_max, survey=SURVEY_KEY, dir=dir, type="max")
+    dump_aggregated_output(dat_output_mean, survey=SURVEY_KEY, dir=dir, type="mean")
+    dump_aggregated_output(dat_output_max, survey=SURVEY_KEY, dir=dir, type="max")
+    dat_output_mean_agg = dat_output_mean.groupby(level=0, axis=1).sum()
+    return dat_output_mean_agg
 
+def main(args):
+    default_args = vars(parser.parse_args())
+    KOBO_TOKEN = os.getenv(env_KOBO_TOKEN)
+    SURVEY_KEY = os.getenv(env_SURVEY_KEY)
+    for key in default_args.keys():
+        if key not in args:
+            args[key] = default_args[key]
+    preprocessed_survey = preprocess_survey(SURVEY_KEY, KOBO_TOKEN, args)
+
+    if args.get("printoutput"):
+        print(preprocessed_survey)
+    if args.get("printids"):
+        print("FORM IDs: \n", list(preprocessed_survey.keys()))
+    if args.get("printsingleform"):
+        for form_id in args.get("printsingleform"):
+            print(f"output for form {form_id}:\n", preprocessed_survey[form_id])
+
+
+    if len(list(preprocessed_survey.keys())):
+        sim_mean_agg = run_simulation_on_survey(preprocessed_survey, args)
+        return sim_mean_agg
+    else:
+        print("None of the forms could be preprocessed")
+        return None
 
 if __name__ == "__main__":
     # run_simulation_on_survey()
+    args = parser.parse_args()
     SURVEY_KEY, KOBO_TOKEN = get_key_and_token()
-    preprocessed_survey = preprocess_survey(SURVEY_KEY, KOBO_TOKEN)
 
-    if args.printoutput:
-        print(preprocessed_survey)
-    if args.printids:
-        print("FORM IDs: \n", list(preprocessed_survey.keys()))
-    if args.printsingleform:
-        for form_id in args.printsingleform:
-            print(f"output for form {form_id}:\n", preprocessed_survey[form_id])
-
-    if len(list(preprocessed_survey.keys())):
-        run_simulation_on_survey(preprocessed_survey)
-    else:
-        print("None of the forms could have been preprocessed")
+    main(vars(args))
