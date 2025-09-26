@@ -4,9 +4,9 @@ import numpy as np
 
 from copy import copy
 
-from preprocessing.formparser import FormParser
-from preprocessing.utils import load_kobo_data, warn_and_skip
-from preprocessing import constants
+from wefe_demand.preprocessing.formparser import FormParser
+from wefe_demand.preprocessing.utils import load_kobo_data, warn_and_skip
+from wefe_demand.preprocessing import constants
 
 
 class SurveyParser:
@@ -115,7 +115,7 @@ class SurveyParser:
             self.summary = copy(self.formparser.create_dictionary(1))
         else:
             warnings.warn(
-                "WARNING: No Local Authority form defined. Numerisity set to 1 for all forms."
+                "WARNING: No Local Authority form defined. Numerosity set to 1 for all forms."
             )
 
         self._get_numerosity_from_localaut_info()

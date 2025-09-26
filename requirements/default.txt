@@ -16,3 +16,6 @@ plotly-resampler==0.9.2
 chardet
 rampdemand @ git+https://github.com/RAMP-project/RAMP@development
 datatable_editor @ git+https://github.com/JW-Kraft/datatable_editor@main
+fastapi
+uvicorn
+gunicorn
