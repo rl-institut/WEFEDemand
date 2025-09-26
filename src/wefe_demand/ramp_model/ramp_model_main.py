@@ -20,21 +20,21 @@ In the OptiMG DAT we generate timeseries for the following demands:
 
 # %%
 import pandas as pd
-from ramp_model.ramp_control import RampControl
-from input.cooking_demand import cooking_demand_dict
-from input.household_elec_demand import households_dict
-from input.agro_processing_demand import agro_processing_dict
-from input.admin_input import admin_input
-from input.drinking_water_demand import drinking_water_dict
-from input.service_water_demand import service_water_dict
-from input.complete_input import input_dict
+from wefe_demand.ramp_model.ramp_control import RampControl
+from wefe_demand.input.cooking_demand import cooking_demand_dict
+from wefe_demand.input.household_elec_demand import households_dict
+from wefe_demand.input.agro_processing_demand import agro_processing_dict
+from wefe_demand.input.admin_input import admin_input
+from wefe_demand.input.drinking_water_demand import drinking_water_dict
+from wefe_demand.input.service_water_demand import service_water_dict
+from wefe_demand.input.complete_input import input_dict
 
 # Create instance of RampControl class, define timeframe to model load profiles
 ramp_control = RampControl(365, "2018-01-01")
 
 dat_output = ramp_control.run_opti_mg_dat(input_dict, admin_input)
 # %% Plot
-from helpers import plotting
+from wefe_demand.helpers import plotting
 from plotly.subplots import make_subplots
 
 fig = make_subplots(rows=5, cols=1, shared_xaxes=True)

@@ -1,9 +1,9 @@
-from ramp_model.ramp_control import RampControl
+from wefe_demand.ramp_model.ramp_control import RampControl
 
-from helpers import plotting
+from wefe_demand.helpers import plotting
 from plotly.subplots import make_subplots
-from input.complete_input import input_dict
-from input.admin_input import admin_input
+from wefe_demand.input.complete_input import input_dict
+from wefe_demand.input.admin_input import admin_input
 
 # Create instance of RampControl class, define timeframe to model load profiles
 ramp_control = RampControl(365, "2018-01-01")

@@ -1,0 +1,12 @@
+Metadata-Version: 2.1
+Name: wefe_demand
+Version: 0.0.1
+Summary: An interface between KOBO toolbox surveys and RAMP to generate demand timeseries for WEFE simulations
+Author-email: Giovanni <a@b.com>, Pierre-François Duc <pierre-francois.duc@rl-institut.de>
+Project-URL: Homepage, https://github.com/rl-institut/WEFEDemand
+Project-URL: Issues, https://github.com/rl-institut/WEFEDemand/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.9
+License-File: LICENSE
