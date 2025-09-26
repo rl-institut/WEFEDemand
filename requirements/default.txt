@@ -17,5 +17,6 @@ chardet
 rampdemand @ git+https://github.com/RAMP-project/RAMP@development
 datatable_editor @ git+https://github.com/JW-Kraft/datatable_editor@main
 fastapi
+python-dotenv
 uvicorn
 gunicorn

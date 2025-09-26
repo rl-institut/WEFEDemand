@@ -20,7 +20,7 @@ dynamic = ["version", "dependencies"] #, "readme"]
 [tool.setuptools.dynamic]
 #readme = {file = ["README.rst"]}
 version = {attr = "wefe_demand.version"}
-dependencies = {file = ["requirements/build_requirements.txt"]}
+dependencies = {file = ["requirements/default.txt"]}
 
 [project.scripts]
 cli-name = "mypkg.mymodule:some_func"
