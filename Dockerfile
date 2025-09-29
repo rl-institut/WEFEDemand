@@ -27,4 +27,4 @@ ENV PYTHONPATH=/app/src/wefe_demand:$PYTHONPATH
 EXPOSE 5000
 
 # Run with Gunicorn + Uvicorn
-CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "demo.app:app", "--bind", "0.0.0.0:5000", "--workers", "4", "--threads", "2"]
+CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:5000", "--workers", "4", "--threads", "2", "demo.app:app"]
