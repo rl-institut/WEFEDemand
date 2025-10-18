@@ -19,47 +19,23 @@
 
 </head>
 <body>
-<h1>Welcome to Offgridplanner simulation server! </h1>
+<h1>Welcome to the WEFEDemand simulation server! </h1>
 <div>
     <h2>Test simulation with custom json</h2>
-    <h3>Grid optimization</h3>
+    <h3>WEFEDemand Simulation</h3>
 
-    <p>Upload a grid input json file and click on "Run simulation"</p>
-    <form action="/uploadjson/grid" enctype="multipart/form-data" method="post">
+    <p>Upload a input json file and click on "Run simulation"</p>
+    <form action="/uploadjson" enctype="multipart/form-data" method="post">
     <!-- the value of `name` property should be used in the uploadjson endpoint function -->
     <input name="json_file" type="file" multiple>
     <input value="Run simulation" type="submit">
     </form>
-
-    <h3>Supply optimization</h3>
-
-    <p>Upload a supply input json file and click on "Run simulation"</p>
-    <form action="/uploadjson/supply" enctype="multipart/form-data" method="post">
-        <!-- the value of `name` property should be used in the uploadjson endpoint function -->
-        <input name="json_file" type="file" multiple>
-        <input value="Run simulation" type="submit">
-    </form>
 </div>
-
-<div style="margin-top: 2rem; font-size: 0.9rem;">
-  <h3>Validation Schemas</h3>
-    <h4>Access:</h4>
-  <p>JSON Schemas can be accessed via <code>/schema/{queue}/{variant}</code> </p>
-  <p><strong>queue</strong> = <code>grid</code> or <code>supply</code> | <strong>variant</strong> = <code>input</code> or <code>output</code></p>
-  <h4>Available Schemas:</h4>
-    <ul style="list-style-type: none; padding-left: 0;">
-    <li><a href="/schema/supply/input">Supply Schema Input</a></li>
-    <li><a href="/schema/supply/output">Supply Schema Output</a></li>
-    <li><a href="/schema/grid/input">Grid Schema Input</a></li>
-    <li><a href="/schema/grid/output">Grid Schema Output</a></li>
-  </ul>
-</div>
-
 
 <div>
     <h2>More information</h2>
     <ul>
-        <li><a href="https://github.com/rl-institut/optimizer-offgridplanner" target="_blank">More about Offgridplanner simulation</a></li>
+        <li><a href="https://github.com/rl-institut/WEFEDemand" target="_blank">More about WEFEDemand simulation</a></li>
     </ul>
 </div>
 {% block body %}{% endblock body%}
