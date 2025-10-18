@@ -107,9 +107,7 @@ async def check_task(task_id: str) -> JSONResponse:
         task["status"] = res.state
     else:
         task["status"] = "DONE"
-        results_as_dict = json.loads(res.result)
-        server_info = results_as_dict.pop("SERVER")
-        task["server_info"] = server_info
+        results_as_dict = res.result
         task["results"] = results_as_dict
         if "ERROR" in task["results"]:
             task["status"] = "ERROR"

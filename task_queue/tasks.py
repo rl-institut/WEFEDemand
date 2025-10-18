@@ -55,8 +55,9 @@ def run_simulation(simulation_input: dict,) -> dict:
                     survey_id, bool(kobo_token))
 
         try:
-            agg_mean = run_ramp_simulation(simulation_input)
-            simulation_output = {"data": agg_mean.to_dict(orient="list")}
+            sim_agg_data = run_ramp_simulation(simulation_input)
+            simulation_output = {"agg_mean": sim_agg_data["agg_mean"].to_dict(orient="list"),
+                                 "agg_max": sim_agg_data["agg_max"].to_dict(orient="list")}
         except Exception as e:
             logger.error(
                 "An exception occured in the simulation task: {}".format(
