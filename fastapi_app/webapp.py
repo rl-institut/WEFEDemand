@@ -1,18 +1,11 @@
 import os
 import json
-import io
 
-import jsonschema.exceptions
-from fastapi import FastAPI, Request, Response, File, UploadFile, HTTPException
+from fastapi import FastAPI, Request, Response, File, UploadFile
 from fastapi.encoders import jsonable_encoder
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import StreamingResponse
 from fastapi.responses import JSONResponse
-import importlib.util
-from fastapi.responses import JSONResponse
-from jsonschema import validate
-from demo.ramp_simulation_demo import main as run_ramp_simulation
 
 try:
     from worker import app as celery_app
@@ -52,22 +45,13 @@ def index(request: Request) -> Response:
     )
 
 @app.post("/sendjson")
-async def simulate_json_variable(request: Request, queue: str = "supply"):
+async def simulate_json_variable(request: Request):
     """Receive mvs simulation parameter in json post request and send it to simulator"""
     input_dict = await request.json()
-    args = input_dict.get("args", {})
-    survey_id = input_dict.get("survey_id", "")
-    os.environ["SURVEY_KEY"] = survey_id
-    try:
-        agg_mean = run_ramp_simulation(args)
-        return {"data": agg_mean.to_dict(orient="list")}
-    except Exception as e:
-        return {"error": str(e)}
-
 
     # send the task to celery
     task = celery_app.send_task(
-        f"{queue}.run_simulation", args=[input_dict], queue=queue, kwargs={}
+        f"dev.run_simulation", args=input_dict, kwargs={}, queue="dev"
     )
     queue_answer = await check_task(task.id)
 
@@ -76,14 +60,15 @@ async def simulate_json_variable(request: Request, queue: str = "supply"):
 
 @app.post("/uploadjson")
 def simulate_uploaded_json_files(
-    request: Request, queue: str, json_file: UploadFile = File(...),
+    request: Request, json_file: UploadFile = File(...),
 ):
     """Receive mvs simulation parameter in json post request and send it to simulator
     the value of `name` property of the input html tag should be `json_file` as the second
     argument of this function
     """
     json_content = jsonable_encoder(json_file.file.read())
-    return run_simulation(request, input_json=json_content, queue=f"{queue}")
+
+    return run_simulation(request, input_json=json_content)
 
 
 def run_simulation(request: Request, input_json=None) -> Response:
@@ -100,7 +85,7 @@ def run_simulation(request: Request, input_json=None) -> Response:
 
     # send the task to celery
     task = celery_app.send_task(
-        f"dev.run_simulation", args=[input_dict], kwargs={}
+        f"dev.run_simulation", args=[input_dict], kwargs={}, queue="dev"
     )
 
     return templates.TemplateResponse(
