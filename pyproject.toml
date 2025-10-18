@@ -28,3 +28,6 @@ cli-name = "mypkg.mymodule:some_func"
 [project.urls]
 Homepage = "https://github.com/rl-institut/WEFEDemand"
 Issues = "https://github.com/rl-institut/WEFEDemand/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]

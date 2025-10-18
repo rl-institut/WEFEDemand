@@ -20,6 +20,7 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - CELERY_TASK_NAME=dev
+      - KOBO_TOKEN=${KOBO_TOKEN}
     build:
       # context should be the name of the folder which define the tasks
       context: .
