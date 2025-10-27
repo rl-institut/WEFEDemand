@@ -10,9 +10,9 @@ from task_queue.demo.ramp_simulation_demo import main as run_ramp_simulation
 
 
 logger = get_task_logger(__name__)
-CELERY_BROKER_URL = (os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379"),)
+CELERY_BROKER_URL = (os.environ.get("CELERY_BROKER_URL", None),)
 CELERY_RESULT_BACKEND = os.environ.get(
-    "CELERY_RESULT_BACKEND", "redis://localhost:6379"
+    "CELERY_RESULT_BACKEND", None
 )
 
 CELERY_TASK_NAME = os.environ.get("CELERY_TASK_NAME", "grid")
