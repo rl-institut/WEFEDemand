@@ -51,7 +51,7 @@ async def simulate_json_variable(request: Request):
 
     # send the task to celery
     task = celery_app.send_task(
-        f"dev.run_simulation", args=input_dict, kwargs={}, queue="dev"
+        f"dev.run_simulation", args=[input_dict], kwargs={}, queue="dev"
     )
     queue_answer = await check_task(task.id)
 
