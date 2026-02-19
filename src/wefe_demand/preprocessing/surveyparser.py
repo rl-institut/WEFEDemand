@@ -258,6 +258,19 @@ class SurveyParser:
         list_subtype_in_survey = {}
         list_subtype_in_localaut = {}
 
+        # If no Local Authority form was provided, numerosity should default to 1
+        # for all forms. Avoid relying on self.summary in that case.
+        if not hasattr(self, "summary") or self.summary is None:
+            for type in self.n_forms.keys():
+                if type == "local_aut":
+                    continue
+                for subtype in self.n_forms[type].keys():
+                    if subtype == "revenues" or subtype is None:
+                        continue
+                    for id in self.n_forms[type][subtype]:
+                        self.numerosity[id] = 1
+            return
+
         # list all service, household and business subtypes in localform
         for type in self.n_forms.keys():
             if type == "local_aut":
