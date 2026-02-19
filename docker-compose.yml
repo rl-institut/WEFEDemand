@@ -1,21 +1,41 @@
 services:
-  wefe-demand:
+  web:
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     build:
+      # `context` should be a path to a directory containing a Dockerfile
       context: .
-    container_name: wefe-demand
-    restart: always
-    env_file:
-      - .env
-    volumes:
-      - demand_data:/app/output
-    networks:
-      - optimg_network
+      dockerfile: ./fastapi_app/Dockerfile
+    restart: unless-stopped
     ports:
-      - "5000:5000"
-
-volumes:
-  demand_data:
+      - "5001:5001"
+    depends_on:
+      - redis
+    networks:
+#      - caddy_network
+      - sim_network
+  worker:
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - CELERY_TASK_NAME=dev
+      - KOBO_TOKEN=${KOBO_TOKEN}
+    build:
+      # context should be the name of the folder which define the tasks
+      context: .
+      dockerfile: ./task_queue/Dockerfile
+    depends_on:
+      - redis
+    networks:
+      - sim_network
+  redis:
+    image: redis
+    networks:
+    - sim_network
 
 networks:
-  optimg_network:
-    external: true
+#  caddy_network:
+#    external:
+#      name: docker_caddy_network
+  sim_network:

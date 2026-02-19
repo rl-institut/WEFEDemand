@@ -2,7 +2,6 @@ import os
 import sys
 
 import argparse
-import pandas as pd
 
 from wefe_demand.input.admin_input import admin_input
 from wefe_demand.preprocessing.surveyparser import SurveyParser
@@ -183,20 +182,22 @@ def run_simulation_on_survey(data, args):
 
     print(dat_output_mean)
     # %% Dump raw output on CSV
-    dir = args.get("output")
-    create_directory_if_not_exists(dir)
-    create_directory_if_not_exists(f"{dir}/{SURVEY_KEY}")
-    dump_simulation_output(dat_output_mean, survey=SURVEY_KEY, dir=dir, type="mean")
-    dump_simulation_output(dat_output_max, survey=SURVEY_KEY, dir=dir, type="max")
-    dump_aggregated_output(dat_output_mean, survey=SURVEY_KEY, dir=dir, type="mean")
-    dump_aggregated_output(dat_output_max, survey=SURVEY_KEY, dir=dir, type="max")
+    # dir = args.get("output")
+    # create_directory_if_not_exists(dir)
+    # create_directory_if_not_exists(f"{dir}/{SURVEY_KEY}")
+    # dump_simulation_output(dat_output_mean, survey=SURVEY_KEY, dir=dir, type="mean")
+    # dump_simulation_output(dat_output_max, survey=SURVEY_KEY, dir=dir, type="max")
+    # dump_aggregated_output(dat_output_mean, survey=SURVEY_KEY, dir=dir, type="mean")
+    # dump_aggregated_output(dat_output_max, survey=SURVEY_KEY, dir=dir, type="max")
     dat_output_mean_agg = dat_output_mean.groupby(level=0, axis=1).sum()
-    return dat_output_mean_agg
+    dat_output_max_agg = dat_output_max.groupby(level=0, axis=1).sum()
+    return {"agg_mean": dat_output_mean_agg, "agg_max": dat_output_max_agg}
 
-def main(args):
-    default_args = vars(parser.parse_args())
+def main(input_dict):
+    args = input_dict.get("args", {})
+    default_args = vars(parser.parse_args([]))
     KOBO_TOKEN = os.getenv(env_KOBO_TOKEN)
-    SURVEY_KEY = os.getenv(env_SURVEY_KEY)
+    SURVEY_KEY = input_dict.get("survey_id", env_SURVEY_KEY)
     for key in default_args.keys():
         if key not in args:
             args[key] = default_args[key]
@@ -212,8 +213,8 @@ def main(args):
 
 
     if len(list(preprocessed_survey.keys())):
-        sim_mean_agg = run_simulation_on_survey(preprocessed_survey, args)
-        return sim_mean_agg
+        sim_agg_data = run_simulation_on_survey(preprocessed_survey, args)
+        return sim_agg_data
     else:
         print("None of the forms could be preprocessed")
         return None
