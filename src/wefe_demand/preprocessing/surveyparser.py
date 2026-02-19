@@ -93,7 +93,8 @@ class SurveyParser:
                 self.n_forms[type]["revenues"]["ids"].append(form["_id"])
                 self.n_forms[type]["revenues"]["q"].append(self.formparser.subtype_info)
 
-        self._divide_households()
+        if self.n_forms["household"]:
+            self._divide_households()
 
     def process_survey(self, form_type=None, form_id=None) -> dict:
         """
@@ -127,30 +128,16 @@ class SurveyParser:
                 for id in form_id:
                     if self.verbose:
                         print("Processing form {}.".format(id))
-                    try:
-                        self.formparser.init_parser(self.forms[id])
-                        temp = copy(
-                            self.formparser.create_dictionary(
-                                numerosity=self.numerosity[id]
-                            )
+                    self.formparser.init_parser(self.forms[id])
+                    temp = copy(
+                        self.formparser.create_dictionary(
+                            numerosity=self.numerosity[id]
                         )
-                        if self.verbose:
-                            print(f"Processed form {id}.")
-                        print(self.formparser.TIME_PROBLEM)
-                        if not self.formparser.TIME_PROBLEM:
-                            output[id] = temp
-                        elif self.verbose:
-                            print(
-                                f"Processed form {id}, but found a time problem, output not added for the simulation."
-                            )
-                    except Exception as e:
-                        print(
-                            f"WARNING: Could not process form {id}"
-                            " Skipping this form."
-                        )
-                        if self.verbose:
-                            print(f"ERROR: the error was: {str(e)}")
-                        continue
+                    )
+                    if self.verbose:
+                        print(f"Processed form {id}.")
+                    print(self.formparser.TIME_PROBLEM)
+                    output[id] = temp
             ## Looping over all forms of a specific type
             elif form_type is not None:
                 for id in self.type_form_per_id[form_type]:
@@ -186,29 +173,15 @@ class SurveyParser:
                         print("Processing form {}.".format(form["_id"]))
                     if form["_id"] in self.type_form_per_id["local_aut"]:
                         continue
-                    try:
-                        self.formparser.init_parser(form)
-                        temp = copy(
-                            self.formparser.create_dictionary(
-                                numerosity=self.numerosity[form["_id"]]
-                            )
+                    self.formparser.init_parser(form)
+                    temp = copy(
+                        self.formparser.create_dictionary(
+                            numerosity=self.numerosity[form["_id"]]
                         )
-                        if self.verbose:
-                            print(f"Processed form {form['_id']}.")
-                        if not self.formparser.TIME_PROBLEM:
-                            output[form["_id"]] = temp
-                        elif self.verbose:
-                            print(
-                                f"Processed form {form['_id']}, but found a time problem, output not added for the simulation."
-                            )
-                    except Exception as e:
-                        print(
-                            f"WARNING: Could not process form {form['_id']}"
-                            " Skipping this form."
-                        )
-                        if self.verbose:
-                            print(f"ERROR: the error was: {str(e)}")
-                        continue
+                    )
+                    if self.verbose:
+                        print(f"Processed form {form['_id']}.")
+                    output[form["_id"]] = temp
         else:
             raise BaseException("WARNING: No survey data defined.")
 
