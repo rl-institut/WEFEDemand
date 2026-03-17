@@ -197,7 +197,7 @@ def main(input_dict):
     args = input_dict.get("args", {})
     default_args = vars(parser.parse_args([]))
     KOBO_TOKEN = os.getenv(env_KOBO_TOKEN)
-    SURVEY_KEY = input_dict.get("survey_id", env_SURVEY_KEY)
+    SURVEY_KEY = input_dict.get("survey_id", os.getenv(env_SURVEY_KEY))
     for key in default_args.keys():
         if key not in args:
             args[key] = default_args[key]
