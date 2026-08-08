@@ -2,11 +2,11 @@ from ramp_model.ramp_control import RampControl
 
 from helpers import plotting
 from plotly.subplots import make_subplots
-from input.complete_input_Arusi import input_dict
+from input.complete_input_Tsumkwe import input_dict
 from input.admin_input import admin_input
 
 # Create instance of RampControl class, define timeframe to model load profiles
-ramp_control = RampControl(365, "2018-01-01")
+ramp_control = RampControl(365, "2023-01-01")
 
 dat_output = ramp_control.run_opti_mg_dat(input_dict, admin_input)
 
@@ -15,16 +15,43 @@ dat_output = ramp_control.run_opti_mg_dat(input_dict, admin_input)
 agg_demand = dat_output.groupby(level=0, axis=1).sum()
 
 # Output the aggregated demand to a CSV file
-agg_demand.to_csv("agg_demand_Arusi.csv")
+agg_demand.to_csv("agg_demand_Tsumkwe.csv")
 print("Aggregated demand data has been written to csv")
 
 # Display the first few rows of the aggregated demands
 agg_demand.head()
 print(agg_demand.head())
 
-# Create Plots in Dash
-fig = make_subplots(rows=1, cols=1, shared_xaxes=True)
-fig = plotting.plotly_high_res_df(fig, df=agg_demand, subplot_row=1)
+# Create 3 stacked panels, one per demand: drinking water, service water, electricity
+# - Water demands were resampled as an hourly SUM -> value = volume drawn per hour [L]
+# - Electricity was resampled as an hourly MEAN -> value = average power in that hour [Wh]
+fig = make_subplots(
+    rows=3,
+    cols=1,
+    shared_xaxes=True,
+    subplot_titles=(
+        "Drinking Water Demand",
+        "Service Water Demand",
+        "Electricity Demand",
+    ),
+    vertical_spacing=0.12,
+)
+
+fig = plotting.plotly_high_res_df(fig, df=agg_demand[["drinking_water"]], subplot_row=1)
+fig = plotting.plotly_high_res_df(fig, df=agg_demand[["service_water"]], subplot_row=2)
+fig = plotting.plotly_high_res_df(fig, df=agg_demand[["electrical_appliances"]], subplot_row=3)
+
+# Axis titles incl. units for each panel
+fig.update_yaxes(title_text="Water Demand [L]", row=1, col=1)
+fig.update_yaxes(title_text="Water Demand [L]", row=2, col=1)
+fig.update_yaxes(title_text="Electricity Demand [Wh]", row=3, col=1)
+
+# X-axis labels + tick values for all three panels
+fig.update_xaxes(title_text="Date", showticklabels=True, row=1, col=1)
+fig.update_xaxes(title_text="Date", showticklabels=True, row=2, col=1)
+fig.update_xaxes(title_text="Date", showticklabels=True, row=3, col=1)
+
+fig.update_layout(autosize=True, height=1100, title_text="Demand Profiles")
 fig.show_dash(mode="external")
 
 # %% Plot raw output
