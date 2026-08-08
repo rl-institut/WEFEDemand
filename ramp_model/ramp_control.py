@@ -156,6 +156,13 @@ class RampControl:
 
         # Create dataframe from dict
         # Loop through all users for which load profiles where generated
+
+        # --- TEMP DEBUG DUMP: raw per-user, per-appliance demand profiles ---
+        import pickle
+        with open(f"demand_profiles_raw_{description}.pkl", "wb") as f:
+            pickle.dump(demand_profiles, f)
+        # --- END TEMP DEBUG DUMP ---
+
         for user, user_dp in demand_profiles.items():
             # Loop through every appliance
             for app, app_dp in user_dp.items():
