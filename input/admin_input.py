@@ -51,6 +51,15 @@ admin_input = {
             "daily_use_variability": 0.3,
             "usage_window_variability": 0.1,
         },
+        # --- Added for Tsumkwe case study ---
+        "hotplate_stove": {  # electric hotplate; most energy-intensive HH appliance per case study text
+            "daily_use_variability": 0.2,
+            "usage_window_variability": 0.2,
+        },
+        "workshop_machinery": {  # generic industrial/workshop equipment (industries archetype)
+            "daily_use_variability": 0.3,
+            "usage_window_variability": 0.1,
+        },
     },
     "cooking_metadata": {
         "cooking_time_variability": 0.2,
@@ -119,6 +128,23 @@ admin_input = {
             "demand_window_variability": 0.2,
         },
         "services": {
+            "daily_demand_variability": 0.2,
+            "demand_window_variability": 0.2,
+        },
+        # --- Added for Tsumkwe case study: domestic water uses from case-study ---
+        "cooking_water": {
+            "daily_demand_variability": 0.2,
+            "demand_window_variability": 0.2,
+        },
+        "cleaning_water": {
+            "daily_demand_variability": 0.2,
+            "demand_window_variability": 0.2,
+        },
+        "laundry_water": {
+            "daily_demand_variability": 0.2,
+            "demand_window_variability": 0.2,
+        },
+        "bathing_water": {
             "daily_demand_variability": 0.2,
             "demand_window_variability": 0.2,
         },
